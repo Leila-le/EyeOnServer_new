@@ -56,10 +56,10 @@ while True:
     #         'mem_percent': mem_percent,
     #         'disk_percent': disk_percent,
     #         'net_io_counters': net}
-    url = 'http://192.168.122.1:8001/api/hardware/'
+    url = 'http://127.0.0.1:8001/api/'
 
     # 发送POST请求
-    response = requests.post(url, json=data)
+    response = requests.post(url, json=data)  # headers被自动设置
 
     # 处理响应结果
     if response.status_code == 200:
