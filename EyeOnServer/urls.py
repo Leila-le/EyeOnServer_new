@@ -16,9 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-import eye_on_server.urls
+from eye_on_server import views
 
 urlpatterns = [
     # path('', include(eye_on_server.urls)),
     path('', admin.site.urls),
+    path('api/hardware', views.home),
+    path('api', views.get_message),
 ]
