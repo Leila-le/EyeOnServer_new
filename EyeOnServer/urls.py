@@ -20,7 +20,8 @@ from eye_on_server import views
 
 urlpatterns = [
     # path('', include(eye_on_server.urls)),
-    path('', admin.site.urls),
-    path('api/home/', views.home, name='home'),
-    path('api/', views.get_message, name='API')
+    path('center/', admin.site.urls),
+    path('api/', views.get_message, name='api'),
+    # path('home/', views.home, name='home')
+
 ]
