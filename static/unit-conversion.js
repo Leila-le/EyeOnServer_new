@@ -5,3 +5,9 @@ function conversionSize(sizeInBytes){
     const sizeInGB = sizeInBytes / (1024 * 1024 * 1024);
     return sizeInGB.toFixed(2) + 'GB';
 }
+
+const sizeTds = document.querySelector('[id$="-size"]');
+sizeTds.forEach(td =>{
+    const sizeInBytes = td.textContent;
+    td.textContent = conversionSize(sizeInBytes);
+})

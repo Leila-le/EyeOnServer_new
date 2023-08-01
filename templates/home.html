@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>服务器资源浏览</title>
     <link rel="stylesheet" href="../static/styles.css">
-{#    <script src="{% static 'unit-conversion.js' %}"></script>#}
+    <script src="../static/unit-conversion.js"></script>
 </head>
 <body>
 <h2>服务器</h2>
@@ -32,12 +32,7 @@
     <td>{{ info.ip }}</td>
     <td>{{ info.cpu_count }}</td>
     <td>{{ info.cpu_percent }}%</td>
-    <td id="memory_total">
-        <script src="../static/unit-conversion.js"></script>
-        <script>
-            const memory_total = document.getElementById('memory_total');
-            memory_total.textContent = conversionSize({{ info.memory_total }});
-        </script>memory_total</td>
+    <td id="memory_total-size">{{ info.memory_total }}</td>
     <td>{{ info.mem_used }}</td>
     <td>{{ info.memory_per }}%</td>
     <td>{{ info.disk_total }}</td>
