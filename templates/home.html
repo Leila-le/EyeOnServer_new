@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>服务器资源浏览</title>
     <link rel="stylesheet" href="../static/styles.css">
-    <script src="../static/unit-conversion.js"></script>
 </head>
 <body>
 <h2>服务器</h2>
@@ -32,11 +31,11 @@
     <td>{{ info.ip }}</td>
     <td>{{ info.cpu_count }}</td>
     <td>{{ info.cpu_percent }}%</td>
-    <td id="memory_total-size">{{ info.memory_total }}</td>
-    <td>{{ info.mem_used }}</td>
+    <td id="memory_total-size">{{ info.memory_total }}<script src="{% static 'unit-conversion.js' %}"></script></td>
+    <td id="mem_used-size">{{ info.mem_used }}<script src="{% static 'unit-conversion.js' %}"></script></td>
     <td>{{ info.memory_per }}%</td>
-    <td>{{ info.disk_total }}</td>
-    <td>{{ info.disk_used }}</td>
+    <td id="disk_total-size">{{ info.disk_total }}<script src="{% static 'unit-conversion.js' %}"></script></td>
+    <td id="disk_used-size">{{ info.disk_used }}<script src="{% static 'unit-conversion.js' %}"></script></td>
     <td>{{ info.net_sent }}</td>
     <td>{{ info.net_rec }}</td>
 </tr>
