@@ -56,10 +56,12 @@ while True:
     #         'mem_percent': mem_percent,
     #         'disk_percent': disk_percent,
     #         'net_io_counters': net}
-    url = 'http://127.0.0.1:8001/api/'
+    url = 'http://192.168.199.42:8000/api/'
     # headers = {'Content-Type': 'application/json'}
     # 发送POST请求
     response = requests.post(url, json=data)  # headers被自动设置
+    print('type:', type(data))
+    print('response-type', type(response))
     # response = requests.post(url, data, headers)
     # 处理响应结果
     if response.status_code == 200:
@@ -67,4 +69,4 @@ while True:
     else:
         print('测试发送失败')
     # 休眠一段时间
-    time.sleep(10)
+    time.sleep(60)

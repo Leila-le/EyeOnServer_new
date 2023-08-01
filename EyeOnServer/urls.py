@@ -22,6 +22,6 @@ urlpatterns = [
     # path('', include(eye_on_server.urls)),
     path('center/', admin.site.urls),
     path('api/', views.get_message, name='api'),
-    # path('home/', views.home, name='home')
+    path('home/', views.home, name='home')
 
 ]
