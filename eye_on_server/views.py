@@ -1,13 +1,32 @@
 from django.utils import timezone
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+# from .status_sock import status_now
 from .models import SeverInfo
-import datetime
 import json
 from django.http import JsonResponse
 
+from dingtalkchatbot.chatbot import DingtalkChatbot
+
 
 # Create your views here.
+
+def send_alert_to_dingtalk(ip, alerts):
+    webhook = 'https://oapi.dingtalk.com/robot/send?access_token=4b3cf9dcf1a6715c22b8af068ff1b343652c7029c65da094f' \
+              '17f25bbf748f9a3'
+    secret = 'SEC480a2494115a5ce9ee573a1dce566f9f18a83c3e16cdec270183b8181aa6fee2'
+    data = {'text': "资源使用超过预警", 'ip': ip}
+    data.update(alerts)
+    data_str = json.dumps(data)
+    xiao_ding = DingtalkChatbot(webhook, secret=secret)
+    try:
+        xiao_ding.send_text(msg=data_str, is_at_all=False)
+        print('钉钉消息发送成功')
+    except:
+        print("钉钉消息发送失败")
+
+
 def get_client_ip(request):
     # 尝试从HTTP_X_FORWARDED_FOR请求头获取IP地址
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -22,6 +41,7 @@ def get_client_ip(request):
     return client_ip
 
 
+@csrf_exempt
 def get_message(request):
     if request.method == "POST":
         ip = get_client_ip(request)
@@ -42,10 +62,10 @@ def get_message(request):
             disk_percent = data.get("disk_percent")
             net_sent = data.get("net_bytes_sent")
             net_rec = data.get("net_bytes_recv")
-            time = timezone.now() + datetime.timedelta(hours=8)
+
         except json.JSONDecodeError as e:
             # Handle JSON decoding errors
-            error_message = str(e)
+            # error_message = str(e)
             cpu_count = 'error'
             cpu_percent = 'error'
             memory_total = 'error'
@@ -56,8 +76,17 @@ def get_message(request):
             disk_percent = 'error'
             net_sent = 'error'
             net_rec = 'error'
+
             # time = timezone.now() + datetime.timedelta(hours=8)
-            time = timezone.now()
+        time = timezone.now()  # + datetime.timedelta(hours=8)
+
+        send_alert_to_dingtalk(ip, {"cpu_percent": cpu_percent})
+        # if cpu_percent > 99:
+        #     send_alert_to_dingtalk(ip, {"cpu_percent": cpu_percent})
+        if memory_per > 90:
+            send_alert_to_dingtalk(ip, {"memory_per": memory_per})
+        if disk_percent > 80:
+            send_alert_to_dingtalk(ip, {"disk_percent": disk_percent})
         # 使用同步方式保存服务器信息
         try:  # 尝试查找数据库中是否有相同ip地址的记录
             SeverInfo.objects.get(ip=ip)

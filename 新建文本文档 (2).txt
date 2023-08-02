@@ -1,3 +1,4 @@
+网络接收字节数： 21476
 Traceback (most recent call last):
   File "C:\Users\sehun\AppData\Local\Programs\Python\Python311\Lib\site-packages\urllib3\connection.py", line 203, in _new_conn
     sock = connection.create_connection(
@@ -5,7 +6,7 @@ Traceback (most recent call last):
     raise err
   File "C:\Users\sehun\AppData\Local\Programs\Python\Python311\Lib\site-packages\urllib3\util\connection.py", line 73, in create_connection
     sock.connect(sa)
-TimeoutError: [WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
 
 The above exception was the direct cause of the following exception:
 
@@ -24,9 +25,9 @@ Traceback (most recent call last):
     self.connect()
   File "C:\Users\sehun\AppData\Local\Programs\Python\Python311\Lib\site-packages\urllib3\connection.py", line 243, in connect
     self.sock = self._new_conn()
-  File "C:\Users\sehun\AppData\Local\Programs\Python\Python311\Lib\site-packages\urllib3\connection.py", line 212, in _new_conn
-    raise ConnectTimeoutError(
-urllib3.exceptions.ConnectTimeoutError: (<urllib3.connection.HTTPConnection object at 0x0000025C52E72C50>, 'Connection to 192.168.199.42 timed out. (connect timeout=None)')
+  File "C:\Users\sehun\AppData\Local\Programs\Python\Python311\Lib\site-packages\urllib3\connection.py", line 218, in _new_conn
+    raise NewConnectionError(
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x000002594B692C50>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
 
 The above exception was the direct cause of the following exception:
 
@@ -37,7 +38,7 @@ Traceback (most recent call last):
     retries = retries.increment(
   File "C:\Users\sehun\AppData\Local\Programs\Python\Python311\Lib\site-packages\urllib3\util\retry.py", line 515, in increment
     raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
-urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='192.168.199.42', port=8000): Max retries exceeded with url: /api/ (Caused by ConnectTimeoutError(<urllib3.connection.HTTPConnection object at 0x0000025C52E72C50>, 'Connection to 192.168.199.42 timed out. (connect timeout=None)'))
+urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='192.168.199.42', port=8000): Max retries exceeded with url: /api/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002594B692C50>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。'))
 
 During handling of the above exception, another exception occurred:
 
@@ -52,6 +53,6 @@ Traceback (most recent call last):
     resp = self.send(prep, **send_kwargs)
   File "C:\Users\sehun\AppData\Local\Programs\Python\Python311\Lib\site-packages\requests\sessions.py", line 703, in send
     r = adapter.send(request, **kwargs)
-  File "C:\Users\sehun\AppData\Local\Programs\Python\Python311\Lib\site-packages\requests\adapters.py", line 507, in send
-    raise ConnectTimeout(e, request=request)
-requests.exceptions.ConnectTimeout: HTTPConnectionPool(host='192.168.199.42', port=8000): Max retries exceeded with url: /api/ (Caused by ConnectTimeoutError(<urllib3.connection.HTTPConnection object at 0x0000025C52E72C50>, 'Connection to 192.168.199.42 timed out. (connect timeout=None)'))
+  File "C:\Users\sehun\AppData\Local\Programs\Python\Python311\Lib\site-packages\requests\adapters.py", line 519, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPConnectionPool(host='192.168.199.42', port=8000): Max retries exceeded with url: /api/ (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002594B692C50>: Failed to establish a new connection: [WinError 10061] 由于目标计算机积极拒绝，无法连接。'))

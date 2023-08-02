@@ -1,11 +1,28 @@
 import psutil
-
+import socket
 import time
-from datetime import datetime
 
 import requests
 
+# # 客户端配置
+# SERVER_IP = '192.168.199.42'  # 服务器IP地址
+# SERVER_PORT = 8888  # 服务器端口号
+# HEARTBEAT_INTERVAL = 5  # 心跳间隔(单位:秒)
+#
+# # 创建TCP连接
+# sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# sock.connect((SERVER_IP, SERVER_PORT))
 while True:
+    # try:
+    #     # 发送心跳消息
+    #     sock.sendall(b'heartbeat')
+    #     # 等待心跳间隔时间
+    #     time.sleep(HEARTBEAT_INTERVAL)
+    # except Exception as e:
+    #     # 发生异常, 表示客户端已离线
+    #     print("Client is offline:", e)
+    #     # logger.error('Client is offline: %s', e)
+    #     break
     # 获取CPU信息
     cpu_count = psutil.cpu_count()
     cpu_percent = psutil.cpu_percent()
@@ -38,6 +55,7 @@ while True:
     print("磁盘使用率：", disk_percent, "%")
     print("网络发送字节数：", net_bytes_sent)
     print("网络接收字节数：", net_bytes_recv)
+
     # 构造POST请求体
     data = {
         'cpu_count': cpu_count,
@@ -52,21 +70,14 @@ while True:
         'net_bytes_recv': net_bytes_recv,
     }
     # 构造POST请求体
-    # data = {'cpu_percent': cpu_percent,
-    #         'mem_percent': mem_percent,
-    #         'disk_percent': disk_percent,
-    #         'net_io_counters': net}
     url = 'http://192.168.199.42:8000/api/'
-    # headers = {'Content-Type': 'application/json'}
     # 发送POST请求
     response = requests.post(url, json=data)  # headers被自动设置
-    print('type:', type(data))
-    print('response-type', type(response))
-    # response = requests.post(url, data, headers)
     # 处理响应结果
     if response.status_code == 200:
         print('测试发送成功')
     else:
         print('测试发送失败')
+
     # 休眠一段时间
-    time.sleep(60)
+    time.sleep(30)

@@ -20,3 +20,5 @@ class SeverInfo(models.Model):
     # 获取网络使用情况
     net_sent = models.CharField(max_length=30, blank=True, null=True)
     net_rec = models.CharField(max_length=30, blank=True, null=True)
+    # 客户端状态
+    status = models.CharField(max_length=10, blank=True, null=True)

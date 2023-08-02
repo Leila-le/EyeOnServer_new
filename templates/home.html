@@ -6,21 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>服务器资源浏览</title>
     <link rel="stylesheet" href="../static/styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 <h2>服务器</h2>
-<table>
+<table id="data-container">
+<script src="{% static 'update.js' %}"></script>
 <tr>
     <td>编号</td>
     <td>时间</td>
     <td>ip</td>
+    <td>状态</td>
     <td>处理器个数</td>
     <td>处理器使用率</td>
     <td>总内存</td>
-    <td>剩余内存</td>
+    <td>内存已用</td>
     <td>内存使用率</td>
     <td>硬盘总空间</td>
-    <td>硬盘剩余空间</td>
+    <td>硬盘已用</td>
+    <td>硬盘使用率</td>
     <td>网络发送量</td>
     <td>网络接收量</td>
 </tr>
@@ -29,6 +33,7 @@
     <td>{{ info.id }}</td>
     <td>{{ info.time }}</td>
     <td>{{ info.ip }}</td>
+    <td>{{ info.status }}</td>
     <td>{{ info.cpu_count }}</td>
     <td>{{ info.cpu_percent }}%</td>
     <td id="memory_total-size">{{ info.memory_total }}<script src="{% static 'unit-conversion.js' %}"></script></td>
@@ -36,15 +41,16 @@
     <td>{{ info.memory_per }}%</td>
     <td id="disk_total-size">{{ info.disk_total }}<script src="{% static 'unit-conversion.js' %}"></script></td>
     <td id="disk_used-size">{{ info.disk_used }}<script src="{% static 'unit-conversion.js' %}"></script></td>
+    <td>{{ info.disk_percent }}%</td>
     <td>{{ info.net_sent }}</td>
     <td>{{ info.net_rec }}</td>
 </tr>
     {% endfor %}
 </table>
 
-<form method="post">
+<form method="post" >
     {% csrf_token%}
-    <input type="submit" value="刷新" name="save_button" style="width: 80px;height: 60px">
+    <input type="submit" value="刷新" name="save_button" id="save_button" style="width: 80px;height: 60px">
 </form>
 </body>
 </html>
