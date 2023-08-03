@@ -55,9 +55,9 @@ while True:
     print("磁盘使用率：", disk_percent, "%")
     print("网络发送字节数：", net_bytes_sent)
     print("网络接收字节数：", net_bytes_recv)
-
     # 构造POST请求体
     data = {
+        'status': 'online',
         'cpu_count': cpu_count,
         'cpu_percent': cpu_percent,
         'men_total': mem_total,

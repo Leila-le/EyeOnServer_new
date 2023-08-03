@@ -1,30 +1,57 @@
+import socket
+
 from django.utils import timezone
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-# from .status_sock import status_now
 from .models import SeverInfo
 import json
-from django.http import JsonResponse
-
+import datetime
 from dingtalkchatbot.chatbot import DingtalkChatbot
 
 
 # Create your views here.
+def send_alert_to_dingtalk(data_str, alerts):
+    # 尝试发送警告消息给钉钉
+    webhook = 'https://oapi.dingtalk.com/robot/send?access_token=403401f4b0ee81a7ea4b3355b85327bb71cfb33ef2f9ff6ce1db6e82e182af56'
+    secret = 'SECda9044fc2385908cadb9d84940c244d4070d6b647788dc29bea29459851de67e'
 
-def send_alert_to_dingtalk(ip, alerts):
-    webhook = 'https://oapi.dingtalk.com/robot/send?access_token=4b3cf9dcf1a6715c22b8af068ff1b343652c7029c65da094f' \
-              '17f25bbf748f9a3'
-    secret = 'SEC480a2494115a5ce9ee573a1dce566f9f18a83c3e16cdec270183b8181aa6fee2'
-    data = {'text': "资源使用超过预警", 'ip': ip}
-    data.update(alerts)
-    data_str = json.dumps(data)
+    for key, value in alerts.items():
+        print("key,value:", key, value)
+        # 将内容转为字符串:
+        data_str += key + str(value) + '\n'
+
     xiao_ding = DingtalkChatbot(webhook, secret=secret)
     try:
         xiao_ding.send_text(msg=data_str, is_at_all=False)
         print('钉钉消息发送成功')
     except:
         print("钉钉消息发送失败")
+
+
+def test_ip_status(ip_list):
+    # 尝试更新已知ip的当前状态及转变
+    new_status = {}
+    for ip_ in ip_list:
+        try:
+            socket.create_connection((ip_, 80), timeout=1)
+            new_status[ip_] = "online"
+        except(socket.timeout, ConnectionError):
+            new_status[ip_] = "offline"
+
+    # 查询数据库中与new_status中ip相匹配的记录
+    old_status = {}
+    for obj in SeverInfo.objects.filter(ip__in=new_status.keys()):
+        old_status[obj.ip] = obj.status
+
+    for ip, status in new_status.items():
+        if old_status.get(ip) != status:
+            alert = {'ip ': ip, '此时: ': status}
+            send_alert_to_dingtalk("请注意", alert)
+            time_ = datetime.datetime.now()
+            alert.update({" ": time_})
+            # 更新数据库状态:
+            SeverInfo.objects.filter(ip=ip).update(status=status)
 
 
 def get_client_ip(request):
@@ -62,31 +89,41 @@ def get_message(request):
             disk_percent = data.get("disk_percent")
             net_sent = data.get("net_bytes_sent")
             net_rec = data.get("net_bytes_recv")
+            status = data.get('status')
 
         except json.JSONDecodeError as e:
             # Handle JSON decoding errors
             # error_message = str(e)
-            cpu_count = 'error'
-            cpu_percent = 'error'
-            memory_total = 'error'
-            mem_used = 'error'
-            memory_per = 'error'
-            disk_total = 'error'
-            disk_used = 'error'
-            disk_percent = 'error'
-            net_sent = 'error'
-            net_rec = 'error'
+            cpu_count = '-1'
+            cpu_percent = '-1'
+            memory_total = '-1'
+            mem_used = '-1'
+            memory_per = '-1'
+            disk_total = '-1'
+            disk_used = '-1'
+            disk_percent = '-1'
+            net_sent = '-1'
+            net_rec = '-1'
+            status = 'offline'
 
             # time = timezone.now() + datetime.timedelta(hours=8)
         time = timezone.now()  # + datetime.timedelta(hours=8)
-
-        send_alert_to_dingtalk(ip, {"cpu_percent": cpu_percent})
-        # if cpu_percent > 99:
-        #     send_alert_to_dingtalk(ip, {"cpu_percent": cpu_percent})
+        alerts = {'ip: ': ip}
+        if cpu_percent > 5:
+            alerts.update({"cpu已使用: ": cpu_percent})
+            # send_alert_to_dingtalk(ip, {"cpu已使用:": cpu_percent})
         if memory_per > 90:
-            send_alert_to_dingtalk(ip, {"memory_per": memory_per})
+            alerts.update({"内存已使用: ": memory_per})
+            # send_alert_to_dingtalk(ip, {"内存已使用:": memory_per})
         if disk_percent > 80:
-            send_alert_to_dingtalk(ip, {"disk_percent": disk_percent})
+            alerts.update({"磁盘已使用: ": disk_percent})
+            # send_alert_to_dingtalk(ip, {"磁盘已使用:": disk_percent})
+
+        time_ = str(time + datetime.timedelta(hours=8))
+        time_ = time_.split('.')[0]
+        alerts.update({" ": time_})
+        if len(alerts) >= 3:
+            send_alert_to_dingtalk("资源使用超过预警:\n", alerts)
         # 使用同步方式保存服务器信息
         try:  # 尝试查找数据库中是否有相同ip地址的记录
             SeverInfo.objects.get(ip=ip)
@@ -94,18 +131,21 @@ def get_message(request):
             SeverInfo.objects.create(ip=ip, time=time, cpu_count=cpu_count, cpu_percent=cpu_percent,
                                      memory_total=memory_total, mem_used=mem_used, memory_per=memory_per,
                                      disk_total=disk_total, disk_used=disk_used, disk_percent=disk_percent,
-                                     net_sent=net_sent, net_rec=net_rec)
+                                     net_sent=net_sent, net_rec=net_rec, status=status)
         else:  # ip存在,更新字段
             SeverInfo.objects.filter(ip=ip).update(time=time, cpu_count=cpu_count, cpu_percent=cpu_percent,
                                                    memory_total=memory_total, mem_used=mem_used, memory_per=memory_per,
                                                    disk_total=disk_total, disk_used=disk_used,
                                                    disk_percent=disk_percent,
-                                                   net_sent=net_sent, net_rec=net_rec)
+                                                   net_sent=net_sent, net_rec=net_rec, status=status)
 
     return HttpResponse("ok")
 
 
 def home(request):
-    infos = SeverInfo.objects.all()
+    ip_list = SeverInfo.objects.values_list('ip', flat=True)
+    test_ip_status(ip_list)
+
+    infos = SeverInfo.objects.all().order_by('time')
     context = {'infos': infos}
     return render(request, "home.html", context=context)
