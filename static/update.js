@@ -1,11 +1,11 @@
 setInterval(function (){
     //发送Ajax请求
     $.ajax({
-        url:'/api',//Ajax 请求的URL
+        url:'/home',//Ajax 请求的URL
         type:'GET',
-        dataType:'json',
-        success:function (data){
-            $('#data-container').html(data);
+        dataType:'html',
+        success:function (info){
+            $('#data-container').html(info);
         }
     });
 },5000);//间隔5秒执行一次
