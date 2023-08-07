@@ -1,6 +1,5 @@
 function conversionSize(sizeInBytes){
-    if( sizeInBytes==='error') {
-        sizeInBytes = -1;
+    if( sizeInBytes===-1) {
         return sizeInBytes.toFixed(2) + 'GB';
     }
     sizeInBytes=parseInt(sizeInBytes);

@@ -17,11 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from eye_on_server.views import views
+from eye_on_server.views import chart
 
 urlpatterns = [
     # path('', include(eye_on_server.urls)),
     path('center', admin.site.urls),
-    path('api/', views.get_message, name='api'),
-    path('home/', views.home, name='home')
+    # path('api/', views.get_message, name='api'),
+    path('home/', views.home, name='home'),
+    path('basic_line_charts/', chart.Line, name='line'),
+    path('upload/', views.upload_files, name='upload')
 
 ]

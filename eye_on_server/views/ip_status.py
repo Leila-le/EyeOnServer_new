@@ -16,7 +16,8 @@ def update_ip_status(alert):
     with transaction.atomic():
         # 更新数据库状态
         for ip, status in alert.items():
-            print("ip:status::::", ip, status)
+            print("ip:::", ip, status)
+            print("status::",)
             SeverInfo.objects.filter(ip=ip).update(status=status)
     # 发送钉钉消息
     # alert = {'ip ': ip, '此时: ': status}

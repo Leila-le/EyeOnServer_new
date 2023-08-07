@@ -1,3 +1,0 @@
-https://oapi.dingtalk.com/robot/send?access_token=4b3cf9dcf1a6715c22b8af068ff1b343652c7029c65da094f17f25bbf748f9a3
-
-SEC480a2494115a5ce9ee573a1dce566f9f18a83c3e16cdec270183b8181aa6fee2
