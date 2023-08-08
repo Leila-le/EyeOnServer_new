@@ -9,7 +9,7 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="{% static '/layui.css' %}" rel="stylesheet">
+  <link href="{% static 'css/layui.css' %}" rel="stylesheet">
 </head>
 <body>
 <div class="layui-layout layui-layout-admin">
@@ -21,17 +21,10 @@
       <li class="layui-nav-item layui-show-xs-inline-block layui-hide-sm" lay-header-event="menuLeft">
         <i class="layui-icon layui-icon-spread-left"></i>
       </li>
-      <li class="layui-nav-item layui-hide-xs"><a href="javascript:;">nav 1</a></li>
-      <li class="layui-nav-item layui-hide-xs"><a href="javascript:;">nav 2</a></li>
-      <li class="layui-nav-item layui-hide-xs"><a href="javascript:;">nav 3</a></li>
-      <li class="layui-nav-item">
-        <a href="javascript:;">nav groups</a>
-        <dl class="layui-nav-child">
-          <dd><a href="javascript:;">menu 11</a></dd>
-          <dd><a href="javascript:;">menu 22</a></dd>
-          <dd><a href="javascript:;">menu 33</a></dd>
-        </dl>
-      </li>
+      <li class="layui-nav-item layui-hide-xs"><a href="javascript:">系统概览</a></li>
+      <li class="layui-nav-item layui-hide-xs"><a href="javascript:">CPU详情</a></li>
+      <li class="layui-nav-item layui-hide-xs"><a href="javascript:">磁盘详情</a></li>
+        <li class="layui-nav-item layui-hide-xs"><a href="javascript:">内存详情</a></li>
     </ul>
 
     <ul class="layui-nav layui-layout-right">
@@ -59,7 +52,7 @@
         {% for company in companies %}
           <ul class="layui-nav layui-nav-tree" lay-filter="test">
             <li class="layui-nav-item layui-nav-itemed">
-              <a class="" href="javascript:">{{company}}</a>
+              <a class="" href="javascript:">{{company.license_name}}</a>
               <dl class="layui-nav-child">
                 <dd><a href="javascript:">CPU使用情况</a></dd>
                 <dd><a href="javascript:">磁盘使用情况</a></dd>
@@ -114,8 +107,8 @@ layui.use(['element', 'layer', 'util'], function(){
     menuRight: function(){  // 右侧菜单事件
       layer.open({
         type: 1,
-        title: '新增监控对象',
-        content: '<form method="post" enctype="multipart/form-data">{% csrf_token %} <input type="file" name="files" multiple><button type="submit">上传</button></form>',
+        title: '硬件资源监控',
+        content: '........',
         area: ['260px', '100%'],
         offset: 'rt', // 右上角
         anim: 'slideLeft', // 从右侧抽屉滑出

@@ -18,13 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from eye_on_server.views import views
 from eye_on_server.views import chart
+from eye_on_server.views import data_process
 
 urlpatterns = [
     # path('', include(eye_on_server.urls)),
     path('center', admin.site.urls),
-    # path('api/', views.get_message, name='api'),
+    path('data/', data_process.data_to_model, name='data'),
     path('home/', views.home, name='home'),
     path('basic_line_charts/', chart.Line, name='line'),
-    path('upload/', views.upload_files, name='upload')
 
 ]
