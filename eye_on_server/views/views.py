@@ -1,5 +1,5 @@
+from django.shortcuts import render
 from django.utils import timezone
-from eye_on_server.models import SeverInfo
 
 from .data_process import *
 from .send_dingtalk import send_alert_to_dingtalk

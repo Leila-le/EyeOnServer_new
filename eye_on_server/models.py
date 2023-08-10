@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 
+
 # Create your models here.
 class SeverInfo(models.Model):
     name = models.CharField(max_length=30, blank=True, null=True)

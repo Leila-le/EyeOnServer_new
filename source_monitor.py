@@ -18,8 +18,8 @@ while True:
         for file in new_files:
             files_path.append(os.path.join(folder_path, file))
 
-        print('files_path',files_path)
-            # 处理新文件
+        print('files_path', files_path)
+        # 处理新文件
         url = 'http://192.168.199.42:8000/data/'
         requests.post(url, json=files_path)
     # 更新文件列表
