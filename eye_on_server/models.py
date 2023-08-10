@@ -1,11 +1,11 @@
 from django.db import models
-
+from django.utils import timezone
 
 # Create your models here.
 class SeverInfo(models.Model):
     name = models.CharField(max_length=30, blank=True, null=True)
     license_name = models.CharField(max_length=30, blank=True, null=True)
-    time = models.DateTimeField()
+    time = models.DateTimeField(default=timezone.now)
     # 获取CPU使用情况
     cpu_guest = models.CharField(max_length=30, blank=True, null=True)
     cpu_guest_nice = models.CharField(max_length=30, blank=True, null=True)

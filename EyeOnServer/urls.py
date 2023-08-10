@@ -26,5 +26,6 @@ urlpatterns = [
     path('data/', data_process.data_to_model, name='data'),
     path('home/', views.home, name='home'),
     path('basic_line_charts/', chart.Line, name='line'),
+    path('ServerList/',views.server,name='ServerList')
 
 ]

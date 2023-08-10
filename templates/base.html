@@ -10,6 +10,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="{% static 'css/layui.css' %}" rel="stylesheet">
+{#    <script src="../static/js/tools.js"></script>#}
 </head>
 <body>
 <div class="layui-layout layui-layout-admin">
@@ -21,10 +22,13 @@
       <li class="layui-nav-item layui-show-xs-inline-block layui-hide-sm" lay-header-event="menuLeft">
         <i class="layui-icon layui-icon-spread-left"></i>
       </li>
-      <li class="layui-nav-item layui-hide-xs"><a href="javascript:">系统概览</a></li>
-      <li class="layui-nav-item layui-hide-xs"><a href="javascript:">CPU详情</a></li>
-      <li class="layui-nav-item layui-hide-xs"><a href="javascript:">磁盘详情</a></li>
-        <li class="layui-nav-item layui-hide-xs"><a href="javascript:">内存详情</a></li>
+        <i class="layui-edge layui-edge-left"></i><i class="layui-edge layui-edge-right"></i>
+      <li class="layui-nav-item layui-hide-xs" style="display: inline-block;"><a href="javascript:">首页</a></li>
+      <li style="display: inline-block;">
+          <div class="layui-input-wrap">
+            <input type="text" lay-affix="search" lay-filter="search" lay-options="{split: true}" placeholder="搜索…" class="layui-input">
+          </div>
+      </li>
     </ul>
 
     <ul class="layui-nav layui-layout-right">
@@ -47,77 +51,102 @@
     </ul>
   </div>
   <div class="layui-side layui-bg-black">
-    <div class="layui-side-scroll">
-      <!-- 左侧导航区域 -->
-        {% for company in companies %}
-          <ul class="layui-nav layui-nav-tree" lay-filter="test">
-            <li class="layui-nav-item layui-nav-itemed">
-              <a class="" href="javascript:">{{company.license_name}}</a>
-              <dl class="layui-nav-child">
-                <dd><a href="javascript:">CPU使用情况</a></dd>
-                <dd><a href="javascript:">磁盘使用情况</a></dd>
-                <dd><a href="javascript:">内存使用情况</a></dd>
-    {#            <dd><a href="javascript:;">the links</a></dd>#}
-              </dl>
-            </li>
-          </ul>
-        {% endfor %}
-{% block upload%}{% endblock %}
+      <ul class="layui-nav layui-nav-tree" lay-filter="test">
+        <li class="layui-nav-item layui-nav-itemed">
+          <a class="" href="{% url 'ServerList' %}">服务器列表</a>
+          <dl class="layui-nav-child">
+            <dd><a href="javascript:;">menu 1</a></dd>
+            <dd><a href="javascript:;">menu 2</a></dd>
+            <dd><a href="javascript:;">menu 3</a></dd>
+            <dd><a href="javascript:;">the links</a></dd>
+          </dl>
+        </li>
+        <li class="layui-nav-item">
+          <a href="javascript:;">menu group 2</a>
+          <dl class="layui-nav-child">
+            <dd><a href="javascript:;">list 1</a></dd>
+            <dd><a href="javascript:;">list 2</a></dd>
+            <dd><a href="javascript:;">超链接</a></dd>
+          </dl>
+        </li>
+        <li class="layui-nav-item"><a href="javascript:;">click menu item</a></li>
+        <li class="layui-nav-item"><a href="javascript:;">the links</a></li>
+      </ul>
     </div>
   </div>
   <div class="layui-body">
     <!-- 内容主体区域 -->
-    <div style="padding: 15px;">
-      <blockquote class="layui-elem-quote layui-text">
-        CPU平均使用率
-          {% block cpu_data_line %}
-          {% endblock %}
-      </blockquote>
-      <div class="layui-card layui-panel">
-        <div class="layui-card-header">
-          下面是充数内容，为的是出现滚动条
-        </div>
-        <div class="CPU_line">
-        {% block cpu_data %}{% endblock %}
-        </div>
+      <div style="padding: 15px;">
+          <div class="flow-demo" id="ID-flow-demo"></div>
       </div>
-      <br><br>
-    </div>
   </div>
-  <div class="layui-footer">
+<div class="layui-footer">
     <!-- 底部固定区域 -->
     底部固定区域
-  </div>
 </div>
 
 <script src="{% static "/js/layui.js" %}"></script>
 <script>
-//JS
-layui.use(['element', 'layer', 'util'], function(){
-  var element = layui.element;
-  var layer = layui.layer;
-  var util = layui.util;
-  var $ = layui.$;
+    //JS
+    layui.use(['element', 'layer', 'util'], function(){
+      var element = layui.element;
+      var layer = layui.layer;
+      var util = layui.util;
+      var $ = layui.$;
 
-  //头部事件
-  util.event('lay-header-event', {
-    menuLeft: function(othis){ // 左侧菜单事件
-      layer.msg('展开左侧菜单的操作', {icon: 0});
-    },
-    menuRight: function(){  // 右侧菜单事件
-      layer.open({
-        type: 1,
-        title: '硬件资源监控',
-        content: '........',
-        area: ['260px', '100%'],
-        offset: 'rt', // 右上角
-        anim: 'slideLeft', // 从右侧抽屉滑出
-        shadeClose: true,
-        scrollbar: false
+      //头部事件
+      util.event('lay-header-event', {
+        menuLeft: function(othis){ // 左侧菜单事件
+          layer.msg('展开左侧菜单的操作', {icon: 0});
+        },
+        menuRight: function(){  // 右侧菜单事件
+          layer.open({
+            type: 1,
+            title: '硬件资源监控',
+            content: '........',
+            area: ['260px', '100%'],
+            offset: 'rt', // 右上角
+            anim: 'slideLeft', // 从右侧抽屉滑出
+            shadeClose: true,
+            scrollbar: false
+          });
+        }
       });
+    });
+    layui.use(function(){
+      var flow = layui.flow;
+      // 流加载实例
+      flow.load({
+        elem: '#ID-flow-demo', // 流加载容器
+        scrollElem: '#ID-flow-demo', // 滚动条所在元素，一般不用填，此处只是演示需要。
+        done: function(page, next){ // 执行下一页的回调
+          // 模拟数据插入
+          setTimeout(function(){
+            var lis = [];
+            for(var i = 0; i < 8; i++){
+              lis.push('<li>'+ ( (page-1)*8 + i + 1 ) +'</li>')
+            }
+
+            // 执行下一页渲染，第二参数为：满足“加载更多”的条件，即后面仍有分页
+            // pages 为 Ajax返回的总页数，只有当前页小于总页数的情况下，才会继续出现加载更多
+            next(lis.join(''), page < 10); // 此处假设总页数为 10
+          }, 520);
+        }
+      });
+    });
+    // 输入框点缀事件 - 搜索示例
+  form.on('input-affix(search)', function(data){
+    var elem = data.elem; // 输入框
+    var value = elem.value; // 输入框的值
+    if(!value){
+      layer.msg('请输入搜索内容');
+      return elem.focus()
     }
+    console.log(this);
+    // 模拟搜索跳转
+    location.href = '?keywords='+ value + '&_'+ new Date().getTime() +'#affix-custom';
   });
-});
+
 </script>
 </body>
 </html>
