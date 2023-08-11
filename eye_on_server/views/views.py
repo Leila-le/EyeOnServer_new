@@ -28,8 +28,31 @@ def memory_percent_line(request, data):
 
     return render(request, 'monitor/memory_m.html', locals())
 
+
 def server(request):
-    return render(request,'ServerList.html')
+    # 获取模型对象列表
+    overview_data = {}
+    data = []
+    objects = SeverInfo.objects.all()
+    for item in objects.iterator():
+        join_time_str = item.time.isoformat()
+        overview_data.update(name=item.name,
+                             license_name=item.license_name,
+                             memory=item.memory_percent,
+                             cpu=item.cpu_percent,
+                             disk=item.disk_percent,
+                             joinTime=join_time_str )
+        data.append(overview_data)
+    merged_data = {'code': 0, 'data': data}
+    file_path = './static/merger.json'
+    try:
+        with open(file_path, 'w') as f:
+            json.dump(merged_data, f)
+    except Exception as e:
+        print('json文件生成失败', e)
+    return render(request, 'ServerList.html')
+
+
 def home(request):
     infos = SeverInfo.objects.all().order_by('time')
     context = {'infos': infos}
