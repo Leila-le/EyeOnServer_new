@@ -8,25 +8,6 @@ from .chart import Chart
 
 
 # Create your views here.
-# def cpu_percent_line(request, data):
-#     chart = Chart()
-#     cpu_data_line = chart.line_chart('cpu_avg', 'cpu平均使用率', timezone.now(), SeverInfo.cpu_percent)
-#     print('cpu_data_line', cpu_data_line)
-#     return render(request, 'monitor/cpu_m.html', locals())
-#
-#
-# def disk_percent_line(request, data):
-#     chart = Chart()
-#     disk_data_line = chart.line_chart('disk_avg', 'cpu平均使用率', timezone.now(), SeverInfo.disk_percent)
-#
-#     return render(request, 'monitor/disk_m.html', locals())
-#
-#
-# def memory_percent_line(request, data):
-#     chart = Chart()
-#     memory_data_line = chart.line_chart('memory_avg', 'cpu平均使用率', timezone.now(), SeverInfo.memory_percent)
-#
-#     return render(request, 'monitor/memory_m.html', locals())
 
 def server(request):
     # 获取模型对象列表
@@ -52,21 +33,44 @@ def server(request):
     return render(request, 'ServerList.html')
 
 
-def draw_line():
+# def cpu_percent_line(request, data):
+#     chart = Chart()
+#     cpu_data_line = chart.line_chart('cpu_avg', 'cpu平均使用率', timezone.now(), SeverInfo.cpu_percent)
+#     print('cpu_data_line', cpu_data_line)
+#     return render(request, 'monitor/cpu_m.html', locals())
+#
+#
+# def disk_percent_line(request, data):
+#     chart = Chart()
+#     disk_data_line = chart.line_chart('disk_avg', 'cpu平均使用率', timezone.now(), SeverInfo.disk_percent)
+#
+#     return render(request, 'monitor/disk_m.html', locals())
+#
+#
+# def memory_percent_line(request, data):
+#     chart = Chart()
+#     memory_data_line = chart.line_chart('memory_avg', 'cpu平均使用率', timezone.now(), SeverInfo.memory_percent)
+#
+#     return render(request, 'monitor/memory_m.html', locals())
+
+def draw_line(request):
     chart = Chart()
     server_info_list = SeverInfo.objects.filter(license_name='泉州熊猫科技有限公司')
-    result_cpu = server_info_list.values_list('cpu_percent', 'time')
-    result_memory = server_info_list.values_list('memory_percent', 'time')
-    result_disk = server_info_list.values_list('disk_percent', 'time')
+    for x_data, y_data in server_info_list.values_list('cpu_percent', 'time'):
+        cpu_data_line = chart.line_chart('cpu_avg', 'cpu平均使用率', x_data, y_data)
 
-    cpu_data_line = chart.line_chart('cpu_avg', 'cpu平均使用率', result_cpu)
-    disk_data_line = chart.line_chart('disk_avg', 'cpu平均使用率', result_memory)
-    memory_data_line = chart.line_chart('memory_avg', 'cpu平均使用率', result_disk)
+    for x_data_m, y_data_m in server_info_list.values_list('cpu_percent', 'time'):
+        disk_data_line = chart.line_chart('disk_avg', 'cpu平均使用率', x_data_m, y_data_m)
+
+    for x_data_d, y_data_d in server_info_list.values_list('cpu_percent', 'time'):
+        memory_data_line = chart.line_chart('memory_avg', 'cpu平均使用率', x_data_d, y_data_d)
+    return render(request, 'monitor/cpu_m.html', locals()), render(request, 'monitor/disk_m.html', locals()), \
+        render(request, 'monitor/memory_m.html', locals())
 
 
 def home(request):
     infos = SeverInfo.objects.all().order_by('time')
     context = {'infos': infos}
-
-    draw_line()
+    if request.method == 'GET':
+        draw_line()
     return render(request, "base.html", context=context)
