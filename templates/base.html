@@ -23,7 +23,7 @@
         <i class="layui-icon layui-icon-spread-left"></i>
       </li>
         <i class="layui-edge layui-edge-left"></i><i class="layui-edge layui-edge-right"></i>
-      <li class="layui-nav-item layui-hide-xs" style="display: inline-block;"><a href="javascript:">首页</a></li>
+      <li class="layui-nav-item layui-hide-xs" style="display: inline-block;"><a href="/base">首页</a></li>
       <li style="display: inline-block;">
           <div class="layui-input-wrap">
             <input type="text" lay-affix="search" lay-filter="search" lay-options="{split: true}" placeholder="搜索…" class="layui-input">
@@ -53,11 +53,11 @@
   <div class="layui-side layui-bg-black">
       <ul class="layui-nav layui-nav-tree" lay-filter="test">
         <li class="layui-nav-item layui-nav-itemed">
-          <a class="" href="{% url 'ServerList' %}">服务器列表</a>
+          <a class="" href="/ServerList">资源管理</a>
           <dl class="layui-nav-child">
-            <dd><a href="javascript:;">menu 1</a></dd>
-            <dd><a href="javascript:;">menu 2</a></dd>
-            <dd><a href="javascript:;">menu 3</a></dd>
+            <dd><a href="javascript:;">CPU监测</a></dd>
+            <dd><a href="javascript:;">内存监测</a></dd>
+            <dd><a href="javascript:;">磁盘监测</a></dd>
             <dd><a href="javascript:;">the links</a></dd>
           </dl>
         </li>
@@ -74,11 +74,31 @@
       </ul>
     </div>
   </div>
-  <div class="layui-body">
+    <div class="layui-body">
     <!-- 内容主体区域 -->
-      <div style="padding: 15px;">
-          <div class="flow-demo" id="ID-flow-demo"></div>
+    <div style="padding: 15px;">
+      <blockquote class="layui-elem-quote layui-text">
+        Layui 框体布局内容主体区域
+      </blockquote>
+      <div class="layui-card layui-panel">
+        <div class="layui-card-header">
+          下面是充数内容，为的是出现滚动条
+        </div>
+{#        <div class="layui-card-body">#}
+{#        {% block cpu_overview %}{% endblock %}#}
+{#        </div>#}
+{#      <div class="layui-card-body">#}
+{#        {% block memory_overview %}{% endblock %}#}
+{#        </div>#}
+{#      <div class="layui-card-body">#}
+{#        {% block disk_overview %}{% endblock %}#}
+{#        </div>#}
+        <div class="layui-card-body">
+        {% block Server_list %}{% endblock %}
+        </div>
       </div>
+      <br><br>
+    </div>
   </div>
 <div class="layui-footer">
     <!-- 底部固定区域 -->

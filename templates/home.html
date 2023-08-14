@@ -1,56 +1,117 @@
-{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>服务器资源浏览</title>
-    <link rel="stylesheet" href="../static/styles.css">
-{#    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>#}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo</title>
+  <!-- 请勿在项目正式环境中引用该 layui.css 地址 -->
+  <link href="//unpkg.com/layui@2.8.13/dist/css/layui.css" rel="stylesheet">
 </head>
 <body>
-<h2>服务器</h2>
-<table id="data-container">
-<script src="{% static 'update.js' %}"></script>
-<tr>
-    <td>编号</td>
-    <td>时间</td>
-    <td>ip</td>
-    <td>状态</td>
-    <td>处理器个数</td>
-    <td>处理器使用率</td>
-    <td>总内存</td>
-    <td>内存已用</td>
-    <td>内存使用率</td>
-    <td>硬盘总空间</td>
-    <td>硬盘已用</td>
-    <td>硬盘使用率</td>
-    <td>网络发送量</td>
-    <td>网络接收量</td>
-</tr>
-    {% for info in infos %}
-<tr>
-    <td>{{ info.id }}</td>
-    <td>{{ info.time }}</td>
-    <td>{{ info.ip }}</td>
-    <td>{{ info.status }}</td>
-    <td>{{ info.cpu_count }}</td>
-    <td>{{ info.cpu_percent }}%</td>
-    <td id="memory_total-size">{{ info.memory_total }}<script src="{% static 'unit-conversion.js' %}"></script></td>
-    <td id="mem_used-size">{{ info.mem_used }}<script src="{% static 'unit-conversion.js' %}"></script></td>
-    <td>{{ info.memory_per }}%</td>
-    <td id="disk_total-size">{{ info.disk_total }}<script src="{% static 'unit-conversion.js' %}"></script></td>
-    <td id="disk_used-size">{{ info.disk_used }}<script src="{% static 'unit-conversion.js' %}"></script></td>
-    <td>{{ info.disk_percent }}%</td>
-    <td>{{ info.net_sent }}</td>
-    <td>{{ info.net_rec }}</td>
-</tr>
-    {% endfor %}
-</table>
-
-<form method="post" >
-    {% csrf_token%}
-    <input type="submit" value="刷新" name="save_button" id="save_button" style="width: 80px;height: 60px">
-</form>
+<div class="layui-btn-container">
+  <button type="button" class="layui-btn layui-btn-primary" lay-on="alert">Alert</button>
+  <button type="button" class="layui-btn layui-btn-primary" lay-on="confirm">Confirm</button>
+  <button type="button" class="layui-btn layui-btn-primary" lay-on="msg">Msg</button>
+  <button type="button" class="layui-btn layui-btn-primary" lay-on="page">Page</button>
+  <button type="button" class="layui-btn layui-btn-primary" lay-on="iframe">Iframe</button>
+  <button type="button" class="layui-btn layui-btn-primary" lay-on="load">Load</button>
+  <button type="button" class="layui-btn layui-btn-primary" lay-on="tips">Tips</button>
+  <button type="button" class="layui-btn layui-btn-primary" lay-on="prompt">Prompt</button>
+  <button type="button" class="layui-btn layui-btn-primary" lay-on="photots">Photots</button>
+</div>
+  
+<!-- 请勿在项目正式环境中引用该 layui.js 地址 -->
+<script src="//unpkg.com/layui@2.8.13/dist/layui.js"></script> 
+<script>
+layui.use(function(){
+  var layer = layui.layer;
+  var util = layui.util;
+  // 批量事件
+  util.on('lay-on', {
+    alert: function(){
+      layer.alert('对话框内容');
+    },
+    confirm: function(){
+      layer.confirm('一个询问框的示例？', {
+        btn: ['确定', '关闭'] //按钮
+      }, function(){
+        layer.msg('第一个回调', {icon: 1});
+      }, function(){
+        layer.msg('第二个回调', {
+          time: 20000, // 20s 后自动关闭
+          btn: ['明白了', '知道了']
+        });
+      });
+    },
+    msg: function(){
+      layer.msg('一段提示信息');
+    },
+    page: function(){
+      // 页面层
+      layer.open({
+        type: 1,
+        area: ['420px', '240px'], // 宽高
+        content: '<div style="padding: 11px;">任意 HTML 内容</div>'
+      });
+    },
+    iframe: function(){
+      // iframe 层
+      layer.open({
+        type: 2,
+        title: 'iframe test',
+        shadeClose: true,
+        shade: 0.8,
+        area: ['380px', '80%'],
+        content: '/layer/test/1.html' // iframe 的 url
+      });
+    },
+    load: function(){
+      var index = layer.load(0, {shade: false});
+      setTimeout(function(){
+        layer.close(index); // 关闭 loading
+      }, 5000);
+    },
+    tips: function(){
+      layer.tips('一个 tips 层', this, {
+        tips: 1
+      });
+    },
+    prompt: function(){
+      layer.prompt({title: '密令输入框', formType: 1}, function(pass, index){
+        layer.close(index);
+        layer.prompt({title: '文本输入框', formType: 2}, function(text, index){
+          layer.close(index);
+          alert('您输入的密令：'+ pass +'；文本：'+ text);
+        });
+      });
+    },
+    photots: function(){
+      layer.photos({
+        photos: {
+          "title": "Photos Demo",
+          "start": 0,
+          "data": [
+            {
+              "alt": "layer",
+              "pid": 1,
+              "src": "https://unpkg.com/outeres/demo/layer.png",
+            },
+            {
+              "alt": "壁纸",
+              "pid": 3,
+              "src": "https://unpkg.com/outeres/demo/000.jpg",
+            },
+            {
+              "alt": "浩瀚宇宙",
+              "pid": 5,
+              "src": "https://unpkg.com/outeres/demo/outer-space.jpg",
+            }
+          ]
+        }
+      });
+    }
+  });
+});
+</script>
 </body>
 </html>

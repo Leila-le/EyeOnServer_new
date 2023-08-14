@@ -24,10 +24,9 @@ urlpatterns = [
     # path('', include(eye_on_server.urls)),
     path('center', admin.site.urls),
     path('data/', data_process.data_to_model, name='data'),
-    path('home/', views.home, name='home'),
+    path('base/', views.home, name='base'),
     path('basic_line_charts/', chart.Line, name='line'),
     path('ServerList/', views.server, name='ServerList'),
-    path('monitor/memory_m', views.draw_line, name='memory_m'),
-    path('monitor/cpu_m', views.draw_line, name='cpu_m'),
-    path('monitor/disk_m', views.draw_line, name='disk_m'),
+    path('chart/', views.draw_line, name='chart'),
+
 ]

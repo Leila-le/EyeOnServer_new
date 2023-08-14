@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content%}
+{% block charts %}
+    <h1>1111</h1>
+    {{ cpu_data_line | safe}}
+    {{ memory_data_line | safe}}
+    {{ disk_data_line | safe}}
+{% endblock %}
+{% endblock %}

@@ -1,3 +1,5 @@
+import time
+
 from django.shortcuts import render
 from django.utils import timezone
 
@@ -33,48 +35,33 @@ def server(request):
     return render(request, 'ServerList.html')
 
 
-# def cpu_percent_line(request, data):
-#     chart = Chart()
-#     cpu_data_line = chart.line_chart('cpu_avg', 'cpu平均使用率', timezone.now(), SeverInfo.cpu_percent)
-#     print('cpu_data_line', cpu_data_line)
-#     return render(request, 'monitor/cpu_m.html', locals())
-#
-#
-# def disk_percent_line(request, data):
-#     chart = Chart()
-#     disk_data_line = chart.line_chart('disk_avg', 'cpu平均使用率', timezone.now(), SeverInfo.disk_percent)
-#
-#     return render(request, 'monitor/disk_m.html', locals())
-#
-#
-# def memory_percent_line(request, data):
-#     chart = Chart()
-#     memory_data_line = chart.line_chart('memory_avg', 'cpu平均使用率', timezone.now(), SeverInfo.memory_percent)
-#
-#     return render(request, 'monitor/memory_m.html', locals())
-
 def draw_line(request):
     chart = Chart()
-    x_data=[]
-    y_data = []
-    server_info_list = SeverInfo.objects.filter(license_name='泉州熊猫科技有限公司')
-    for server_info in server_info_list.values_list('cpu_percent', 'time'):
-        x_data.append(server_info[0])
-        y_data.append(server_info[1])
+    x_time = []
+    y_cpu = []
+    y_memory = []
+    y_disk =[]
 
-    cpu_data_line = chart.line_chart('cpu_avg', 'cpu平均使用率', x_data, y_data)
+    server_info_list = SeverInfo.objects.filter(license_name='泉州熊猫科技有限公司')
+
+    for server_info in server_info_list.values_list('cpu_percent', 'time'):
+        y_cpu.append(server_info[0])
+
+        time_ = server_info[1].strftime("%Y/%m/%d %H:%M:%S")
+        x_time.append(time_)
+    cpu_data_line = chart.line_chart('cpu_avg', 'cpu平均使用率', x_time, y_cpu)
 
     for server_info in server_info_list.values_list('disk_percent', 'time'):
-        x_data_d = server_info[0]
-        y_data_d = server_info[1]
-        disk_data_line = chart.line_chart('disk_avg', '磁盘平均使用率', x_data_d, y_data_d)
+        y_memory.append(server_info[0])
+        time_ = server_info[1].strftime("%Y/%m/%d %H:%M:%S")
+    memory_data_line = chart.line_chart('memory_avg', '内存平均使用率', x_time, y_memory)
 
     for server_info in server_info_list.values_list('memory_percent', 'time'):
-        x_data_m = server_info[0]
-        y_data_m = server_info[1]
-        memory_data_line = chart.line_chart('memory_avg', '内存平均使用率', x_data_m, y_data_m)
-    return render(request, 'monitor/cpu_m.html', locals()), render(request, 'monitor/disk_m.html', locals()), \
-        render(request, 'monitor/memory_m.html', locals())
+        y_disk.append(server_info[0])
+        time_ = server_info[1].strftime("%Y/%m/%d %H:%M:%S")
+    disk_data_line = chart.line_chart('disk_avg', '磁盘平均使用率', x_time, y_disk)
+
+    return render(request, 'chart.html', locals())
 
 
 def home(request):
