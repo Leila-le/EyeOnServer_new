@@ -14,5 +14,5 @@ def send_alert_to_dingtalk(data_str, alerts):
     try:
         xiao_ding.send_text(msg=data_str, is_at_all=False)
         print('钉钉消息发送成功')
-    except:
-        print("钉钉消息发送失败")
+    except Exception as e:
+        print("钉钉消息发送失败:", e)

@@ -40,28 +40,42 @@ def draw_line(request):
     x_time = []
     y_cpu = []
     y_memory = []
-    y_disk =[]
+    y_disk = []
+    if request.method == 'GET':
+        license_name = request.GET.get('license_name')
+        server_info_list = SeverInfo.objects.filter(license_name=license_name)
 
-    server_info_list = SeverInfo.objects.filter(license_name='泉州熊猫科技有限公司')
+        for server_info in server_info_list.values_list('cpu_percent', 'time'):
+            y_cpu.append(server_info[0])
 
-    for server_info in server_info_list.values_list('cpu_percent', 'time'):
-        y_cpu.append(server_info[0])
+            time_ = server_info[1].strftime("%Y/%m/%d %H:%M:%S")
+            x_time.append(time_)
+        cpu_data_line = chart.line_chart('cpu_avg', 'cpu平均使用率', x_time, y_cpu)
 
-        time_ = server_info[1].strftime("%Y/%m/%d %H:%M:%S")
-        x_time.append(time_)
-    cpu_data_line = chart.line_chart('cpu_avg', 'cpu平均使用率', x_time, y_cpu)
+        for server_info in server_info_list.values_list('disk_percent', 'time'):
+            y_memory.append(server_info[0])
+            time_ = server_info[1].strftime("%Y/%m/%d %H:%M:%S")
+        memory_data_line = chart.line_chart('memory_avg', '内存平均使用率', x_time, y_memory)
 
-    for server_info in server_info_list.values_list('disk_percent', 'time'):
-        y_memory.append(server_info[0])
-        time_ = server_info[1].strftime("%Y/%m/%d %H:%M:%S")
-    memory_data_line = chart.line_chart('memory_avg', '内存平均使用率', x_time, y_memory)
+        for server_info in server_info_list.values_list('memory_percent', 'time'):
+            y_disk.append(server_info[0])
+            time_ = server_info[1].strftime("%Y/%m/%d %H:%M:%S")
+        disk_data_line = chart.line_chart('disk_avg', '磁盘平均使用率', x_time, y_disk)
 
-    for server_info in server_info_list.values_list('memory_percent', 'time'):
-        y_disk.append(server_info[0])
-        time_ = server_info[1].strftime("%Y/%m/%d %H:%M:%S")
-    disk_data_line = chart.line_chart('disk_avg', '磁盘平均使用率', x_time, y_disk)
+        return render(request, 'chart.html', locals())
 
-    return render(request, 'chart.html', locals())
+
+def systems(request):
+    if request.method == 'GET':
+        license_name = request.GET.get('license_name')
+        infos = SeverInfo.objects.filter(license_name=license_name)
+        context = {'infos': infos}
+        print('context: ', context)
+        return render(request, "system.html", context=context)
+
+
+def picture(request):
+    pass
 
 
 def home(request):

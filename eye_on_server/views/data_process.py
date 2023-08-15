@@ -49,6 +49,7 @@ def data_to_model(request):
         for data in datas:
             name = data.get('name')
             license_ = data.get('license_name')
+
             # cpu使用情况
             cpu_data = data.get('cpu', {})
             cpu_guest = cpu_data.get('guest')

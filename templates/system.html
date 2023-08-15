@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo</title>
+  <!-- 请勿在项目正式环境中引用该 layui.css 地址 -->
+  <link href="{% static 'css/layui.css' %}" rel="stylesheet">
+</head>
+<body>
+<div class="layui-panel">
+  <div style="padding: 32px;">
+  <a>系统信息</a>
+    {% for info in infos %}
+      <p>系统: {{ info.name }}</p><br>
+      <p>许可: {{ info.license_name }}</p><br>
+      <p>CPU核数: {{ info.cpu_count }}</p><br>
+      <p>物理总内存: {{ info.memory_total_physics }}</p><br>
+      <p>系统运行时间: {{ info.memory_uptime }}</p><br>
+    {% endfor %}
+  </div>
+</div>
+<table class="layui-table" lay-even>
+  <colgroup>
+    <col width="150">
+    <col width="150">
+    <col>
+  </colgroup>
+  <thead>
+    <tr>
+      <th>人物</th>
+      <th>民族</th>
+      <th>格言</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>孔子</td>
+      <td>华夏</td>
+      <td>有朋至远方来，不亦乐乎</td>
+    </tr>
+    <tr>
+      <td>孟子</td>
+      <td>华夏</td>
+      <td>穷则独善其身，达则兼济天下</td>
+    </tr>
+    <tr>
+      <td>庄子</td>
+      <td>华夏</td>
+      <td>朴素而天下莫能与之争美</td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

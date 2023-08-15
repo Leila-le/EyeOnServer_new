@@ -82,17 +82,7 @@
       </blockquote>
       <div class="layui-card layui-panel">
         <div class="layui-card-header">
-          下面是充数内容，为的是出现滚动条
         </div>
-{#        <div class="layui-card-body">#}
-{#        {% block cpu_overview %}{% endblock %}#}
-{#        </div>#}
-{#      <div class="layui-card-body">#}
-{#        {% block memory_overview %}{% endblock %}#}
-{#        </div>#}
-{#      <div class="layui-card-body">#}
-{#        {% block disk_overview %}{% endblock %}#}
-{#        </div>#}
         <div class="layui-card-body">
         {% block Server_list %}{% endblock %}
         </div>
@@ -113,7 +103,7 @@
       var layer = layui.layer;
       var util = layui.util;
       var $ = layui.$;
-
+      var form = layui.form;
       //头部事件
       util.event('lay-header-event', {
         menuLeft: function(othis){ // 左侧菜单事件
@@ -131,6 +121,18 @@
             scrollbar: false
           });
         }
+      });
+      // 输入框点缀事件 - 搜索示例
+      form.on('input-affix(search)', function(data){
+        var elem = data.elem; // 输入框
+        var value = elem.value; // 输入框的值
+        if(!value){
+          layer.msg('请输入搜索内容');
+          return elem.focus()
+        }
+        console.log(this);
+        // 模拟搜索跳转
+        location.href = '?keywords='+ value + '&_'+ new Date().getTime() +'#affix-custom';
       });
     });
     layui.use(function(){
@@ -154,18 +156,7 @@
         }
       });
     });
-    // 输入框点缀事件 - 搜索示例
-  form.on('input-affix(search)', function(data){
-    var elem = data.elem; // 输入框
-    var value = elem.value; // 输入框的值
-    if(!value){
-      layer.msg('请输入搜索内容');
-      return elem.focus()
-    }
-    console.log(this);
-    // 模拟搜索跳转
-    location.href = '?keywords='+ value + '&_'+ new Date().getTime() +'#affix-custom';
-  });
+
 
 </script>
 </body>

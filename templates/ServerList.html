@@ -4,36 +4,24 @@
     <!--
     本「综合演示」包含：自定义头部工具栏、获取表格数据、表格重载、自定义模板、单双行显示、单元格编辑、自定义底部分页栏、表格相关事件与操作、与其他组件的结合等相对常用的功能，以便快速掌握 table 组件的使用。
     -->
-    <div style="padding: 16px;">
-      <table class="layui-hide" id="test" lay-filter="test"></table>
+    <div style="padding: 16px;" >
+      <table class="layui-hide" id="test" lay-filter="test" ></table>
     </div>
-    {% block charts %}{% endblock %}
-    <script type="text/html" id="toolbarDemo">
-      <div class="layui-btn-container">
-        <button class="layui-btn layui-btn-sm" lay-event="getCheckData">获取选中行数据</button>
-        <button class="layui-btn layui-btn-sm" lay-event="getData">获取当前页数据</button>
-
-      </div>
-    </script>
 
     <script type="text/html" id="barDemo">
       <div class="layui-clear-space">
-        <button type="button" class="layui-btn layui-btn-xs" lay-on="page">系统</button>
-{#        <a class="layui-btn layui-btn-xs" lay-event="more">#}
-{#          更多#}
-{#          <i class="layui-icon layui-icon-down"></i>#}
-{#        </a>#}
-          <button type="button" class="layui-btn layui-btn-xs" lay-on="page">图表</button>
-          <button type="button" class="layui-btn layui-btn-xs" lay-on="page">画像</button>
+        <a class="layui-btn layui-btn-xs" lay-event="system" >系统</a>
+        <a class="layui-btn layui-btn-xs" lay-event="chart" >图表</a>
+        <a class="layui-btn layui-btn-xs" lay-event="picture" >画像</a>
       </div>
     </script>
     <script src="{% static 'js/layui.js' %}"></script>
+    <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
     <script >
-    layui.use(['table', 'dropdown','util','layer'], function(){
+    layui.use(['table', 'layer'], function(){
       var table = layui.table;
-      var dropdown = layui.dropdown;
-      var util = layui.util;
       var layer = layui.layer;
+      var laypage = layui.laypage;
       // 创建渲染实例
       table.render({
         elem: '#test',
@@ -49,56 +37,70 @@
           '.layui-table-tool-temp{padding-right: 145px;}'
         ].join(''),
         cellMinWidth: 80,
-        totalRow: true, // 开启合计行
-        page: true,
+        page: {
+            layout:['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip'],
+            limits:[10,15,20],
+        },
         cols: [[
           {type: 'checkbox', fixed: 'left'},
-          {field: 'name',fixed: 'left', width:80, title: '系统', sort: true},
-          {field:'license_name', width:80, title: '授权公司/名称', sort: true},
-          {field:'memory', width:80, title: '内存%',sort: true},
-          {field:'cpu', width:80, title: 'CPU%', sort: true},
-          {field:'disk', width:80, title: '磁盘%', sort: true},
-          {field:'ip', title:'IP', width: 120},
-          {field:'joinTime', title:'更新时间', width: 120,sort: true},
-          {field:'remark',title:'备注<i class="layui-icon layui-icon-tips layui-font-14" lay-event="email-tips" title="该字段开启了编辑功能" style="margin-left: 5px;"></i>', hide: 0, width:150, edit: 'text'},
-          {fixed: 'right', title:'操作', width: 134, minWidth: 125, toolbar: '#barDemo'}
+          {field: 'name',fixed: 'left', width:'10%', title: '系统', sort: true},
+          {field:'license_name', width:'15%', title: '授权公司/名称', sort: true},
+          {field:'memory', width:'10%', title: '内存%',sort: true},
+          {field:'cpu', width:'10%', title: 'CPU%', sort: true},
+          {field:'disk', width:'10%', title: '磁盘%', sort: true},
+          {field:'ip', title:'IP', width: '15%'},
+          {field:'joinTime', title:'更新时间', width: '10%',sort: true},
+          {field:'remark',title:'备注<i class="layui-icon layui-icon-tips layui-font-14" lay-event="email-tips" title="该字段开启了编辑功能" style="margin-left: 5px;"></i>', hide: 0, width:'10%', edit: 'text'},
+          {fixed: 'right', title:'操作', width: '10%', toolbar: '#barDemo'}
         ]],
+          done:function (res,curr,count){
+            $("table").css("width","100%")
+          },
         error: function(res, msg){
           console.log(res, msg)
         }
       });
-
-      // 工具栏事件
-      table.on('toolbar(test)', function(obj){
-        var id = obj.config.id;
-        var checkStatus = table.checkStatus(id);
-        var othis = lay(this);
-        switch(obj.event){
-          case 'getCheckData':
-            var data = checkStatus.data;
-            layer.alert(layui.util.escape(JSON.stringify(data)));
-          break;
-          case 'getData':
-            var getData = table.getData(id);
-            console.log(getData);
-            layer.alert(layui.util.escape(JSON.stringify(getData)));
-          break;
-          case 'LAYTABLE_TIPS':
-            layer.alert('自定义工具栏图标按钮');
-          break;
+        // 触发单元格工具事件
+      table.on('tool(test)', function(obj){ // 双击 toolDouble
+        var data = obj.data; // 获得当前行数据
+        // console.log(obj)
+        if(obj.event === 'system'){
+            $.ajax({
+                url:'{% url "system" %}',
+                type:'GET',
+                data:{license_name:data.license_name},
+                success:function (data){
+                    window.location.href=this.url
+                },
+                error:function (xhr, status, error){
+                    console.error("Error:", error);
+                }
+            });
+        } else if(obj.event === 'chart'){
+            $.ajax({
+                url:'{% url "chart" %}',
+                type:'GET',
+                data:{license_name:data.license_name},
+                success:function (data){
+                    window.location.href=this.url
+                },
+                error:function (xhr, status, error){
+                    console.error("Error:", error);
+                }
+            });
+        }else if(obj.event === 'picture') {
+            $.ajax({
+                url:'{% url "picture" %}',
+                type:'GET',
+                data:{license_name:data.license_name},
+                success:function (data){
+                    window.location.href=this.url
+                },
+                error:function (xhr, status, error){
+                    console.error("Error:", error);
+                }
+            });
         }
-      });
-
-      // 触发单元格工具事件
-      util.on('lay-on',{
-          page: function(){
-          // 页面层
-          layer.open({
-            type: 1,
-            area: ['420px', '240px'], // 宽高
-            content: '<div style="padding: 11px;">任意 HTML 内容</div>'
-          });
-        },
       });
 
       // 触发表格复选框选择
@@ -111,30 +113,6 @@
         console.log(obj)
       });
 
-      // 行单击事件
-      table.on('row(test)', function(obj){
-        //console.log(obj);
-        //layer.closeAll('tips');
-      });
-      // 行双击事件
-      table.on('rowDouble(test)', function(obj){
-        console.log(obj);
-      });
-
-      // 单元格编辑事件
-      table.on('edit(test)', function(obj){
-        var field = obj.field; // 得到字段
-        var value = obj.value; // 得到修改后的值
-        var data = obj.data; // 得到所在行所有键值
-        // 编辑后续操作，如提交更新请求，以完成真实的数据更新
-        // …
-        layer.msg('编辑成功', {icon: 1});
-
-        // 其他更新操作
-        var update = {};
-        update[field] = value;
-        obj.update(update);
-      });
     });
     </script>
 {% endblock %}
