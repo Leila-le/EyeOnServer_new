@@ -27,8 +27,8 @@ urlpatterns = [
     path('base/', views.home, name='base'),
     path('basic_line_charts/', chart.Line, name='line'),
     path('ServerList/', views.server, name='ServerList'),
+    path('ServerChart/', views.draw_lines, name='ServerChart'),
     path('chart/', views.draw_line, name='chart'),
     path('system/', views.systems, name='system'),
-    path('picture/', views.picture, name='picture'),
 
 ]

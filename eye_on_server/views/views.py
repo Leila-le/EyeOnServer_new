@@ -12,7 +12,7 @@ from .chart import Chart
 # Create your views here.
 
 def server(request):
-    # 获取模型对象列表
+    # 获取模型对象列表并陈列
     overview_data = {}
     data = []
     objects = SeverInfo.objects.all()
@@ -65,17 +65,34 @@ def draw_line(request):
         return render(request, 'chart.html', locals())
 
 
+# CPU和内存使用率折线图
+def draw_lines(request):
+    chart = Chart()
+    x_time = []
+    y_cpu = []
+    y_memory = []
+    server_info_list = SeverInfo.objects.all()
+    unique_license = set()
+
+    for server_info in server_info_list.values_list('cpu_percent', 'disk_percent', 'time', 'license_name'):
+        y_cpu.append(server_info[0])
+        y_memory.append(server_info[1])
+        time_ = server_info[2].strftime("%Y/%m/%d %H:%M:%S")
+        x_time.append(time_)
+        unique_license.add(server_info[3])
+    data_line = chart.lines_chart('cpu&memory', 'cpu&内存使用率', x_time, y_cpu, y_memory)
+    # print('data_line', data_line)
+    unique_license_list = list(unique_license)
+    return render(request, 'ServerChart.html', locals())
 def systems(request):
     if request.method == 'GET':
         license_name = request.GET.get('license_name')
-        infos = SeverInfo.objects.filter(license_name=license_name)
-        context = {'infos': infos}
-        print('context: ', context)
+        infos = SeverInfo.objects.filter(license_name=license_name).order_by('-time')
+        info = infos.first()
+
+        context = {'info': info}
+
         return render(request, "system.html", context=context)
-
-
-def picture(request):
-    pass
 
 
 def home(request):

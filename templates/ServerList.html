@@ -5,14 +5,20 @@
     本「综合演示」包含：自定义头部工具栏、获取表格数据、表格重载、自定义模板、单双行显示、单元格编辑、自定义底部分页栏、表格相关事件与操作、与其他组件的结合等相对常用的功能，以便快速掌握 table 组件的使用。
     -->
     <div style="padding: 16px;" >
-      <table class="layui-hide" id="test" lay-filter="test" ></table>
+      <table class="layui-hide" id="test" lay-filter="test" >
+          <colgroup>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+  </colgroup></table>
     </div>
 
     <script type="text/html" id="barDemo">
       <div class="layui-clear-space">
         <a class="layui-btn layui-btn-xs" lay-event="system" >系统</a>
         <a class="layui-btn layui-btn-xs" lay-event="chart" >图表</a>
-        <a class="layui-btn layui-btn-xs" lay-event="picture" >画像</a>
       </div>
     </script>
     <script src="{% static 'js/layui.js' %}"></script>
@@ -54,7 +60,11 @@
           {fixed: 'right', title:'操作', width: '10%', toolbar: '#barDemo'}
         ]],
           done:function (res,curr,count){
-            $("table").css("width","100%")
+            $("table").css("width","100%");
+            var dataCount = table.cache.myTableFilter.length;
+            table.reload('#test',{
+                count:dataCount
+            });
           },
         error: function(res, msg){
           console.log(res, msg)
@@ -79,18 +89,6 @@
         } else if(obj.event === 'chart'){
             $.ajax({
                 url:'{% url "chart" %}',
-                type:'GET',
-                data:{license_name:data.license_name},
-                success:function (data){
-                    window.location.href=this.url
-                },
-                error:function (xhr, status, error){
-                    console.error("Error:", error);
-                }
-            });
-        }else if(obj.event === 'picture') {
-            $.ajax({
-                url:'{% url "picture" %}',
                 type:'GET',
                 data:{license_name:data.license_name},
                 success:function (data){

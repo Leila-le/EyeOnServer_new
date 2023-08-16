@@ -19,11 +19,10 @@
     <!-- 头部区域（可配合layui 已有的水平导航） -->
     <ul class="layui-nav layui-layout-left">
       <!-- 移动端显示 -->
-      <li class="layui-nav-item layui-show-xs-inline-block layui-hide-sm" lay-header-event="menuLeft">
+      <li class="layui-nav-item layui-show-xs-inline-block " lay-header-event="menuLeft">
         <i class="layui-icon layui-icon-spread-left"></i>
       </li>
-        <i class="layui-edge layui-edge-left"></i><i class="layui-edge layui-edge-right"></i>
-      <li class="layui-nav-item layui-hide-xs" style="display: inline-block;"><a href="/base">首页</a></li>
+      <li class="layui-nav-item layui-hide-xs" style="display: inline-block;"><a href="/ServerChart">首页</a></li>
       <li style="display: inline-block;">
           <div class="layui-input-wrap">
             <input type="text" lay-affix="search" lay-filter="search" lay-options="{split: true}" placeholder="搜索…" class="layui-input">
@@ -51,7 +50,7 @@
     </ul>
   </div>
   <div class="layui-side layui-bg-black">
-      <ul class="layui-nav layui-nav-tree" lay-filter="test">
+      <ul class="layui-nav layui-nav-tree " lay-filter="test">
         <li class="layui-nav-item layui-nav-itemed">
           <a class="" href="/ServerList">资源管理</a>
           <dl class="layui-nav-child">
@@ -85,6 +84,7 @@
         </div>
         <div class="layui-card-body">
         {% block Server_list %}{% endblock %}
+        {% block ServerChart %}{% endblock %}
         </div>
       </div>
       <br><br>
@@ -107,7 +107,11 @@
       //头部事件
       util.event('lay-header-event', {
         menuLeft: function(othis){ // 左侧菜单事件
-          layer.msg('展开左侧菜单的操作', {icon: 0});
+            var headerEvent=$(othis).attr('lay-header-event');
+            if(headerEvent === 'menuLeft'){
+                $('.layui-side').toggle();
+            }
+
         },
         menuRight: function(){  // 右侧菜单事件
           layer.open({

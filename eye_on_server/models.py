@@ -34,6 +34,7 @@ class SeverInfo(models.Model):
     memory_used_swap = models.CharField(max_length=30, blank=True, null=True)
     memory_ava = models.CharField(max_length=30, blank=True, null=True)
     memory_percent = models.CharField(max_length=30, blank=True, null=True)
+    memory_swap_percent = models.CharField(max_length=30, blank=True, null=True)
     # 获取磁盘使用情况
     disk_free = models.CharField(max_length=30, blank=True, null=True)
     disk_mount_point = models.CharField(max_length=30, blank=True, null=True)

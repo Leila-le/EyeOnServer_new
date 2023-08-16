@@ -12,45 +12,160 @@
 <div class="layui-panel">
   <div style="padding: 32px;">
   <a>系统信息</a>
-    {% for info in infos %}
       <p>系统: {{ info.name }}</p><br>
       <p>许可: {{ info.license_name }}</p><br>
       <p>CPU核数: {{ info.cpu_count }}</p><br>
       <p>物理总内存: {{ info.memory_total_physics }}</p><br>
       <p>系统运行时间: {{ info.memory_uptime }}</p><br>
-    {% endfor %}
+      <p>当前运行的进程数: {{ info.memory_processes }}</p><br>
   </div>
 </div>
+<br>
+<div><a class="layui-btn layui-btn-xs">CPU时间信息</a>
 <table class="layui-table" lay-even>
   <colgroup>
-    <col width="150">
-    <col width="150">
-    <col>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
   </colgroup>
   <thead>
     <tr>
-      <th>人物</th>
-      <th>民族</th>
-      <th>格言</th>
+      <th>CPU空闲</th>
+      <th>用户进程</th>
+      <th>内核进程</th>
+      <th>等待I/O完成</th>
+      <th>处理硬件/软件中断</th>
+      <th>虚拟机占用CPU</th>
+        <th>CPU使用%</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>孔子</td>
-      <td>华夏</td>
-      <td>有朋至远方来，不亦乐乎</td>
-    </tr>
-    <tr>
-      <td>孟子</td>
-      <td>华夏</td>
-      <td>穷则独善其身，达则兼济天下</td>
-    </tr>
-    <tr>
-      <td>庄子</td>
-      <td>华夏</td>
-      <td>朴素而天下莫能与之争美</td>
+      <td>{{ info.cpu_idle}}</td>
+      <td>{{ info.cpu_user}}</td>
+      <td>{{ info.cpu_system}}</td>
+      <td>{{ info.cpu_iowait}}</td>
+      <td>{{ info.cpu_irq}}/{{ info.cpu_softirq}}</td>
+      <td>{{ info.cpu_steal}}</td>
+      <td><div class="layui-progress" lay-showpercent="true">
+            <div class="layui-progress-bar" lay-percent="{{ info.cpu_percent}}%"></div>
+          </div>
+      </td>
     </tr>
   </tbody>
 </table>
+</div>
+
+<br>
+<div><a class="layui-btn layui-btn-xs">物理内存信息</a>
+<table class="layui-table" lay-even>
+  <colgroup>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+  </colgroup>
+  <thead>
+    <tr>
+      <th>总内存</th>
+      <th>已使用</th>
+      <th>可用</th>
+      <th>已使用%</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+        <td>{{ info.memory_total_physics}}</td>
+        <td>{{ info.memory_used_physics}}</td>
+        <td>{{ info.memory_free_physics }}</td>
+        <td><div class="layui-progress" lay-showpercent="true">
+            <div class="layui-progress-bar" lay-percent="{{ info.memory_percent}}%"></div>
+          </div>
+        </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+
+<div><a class="layui-btn layui-btn-xs">交换区信息</a>
+<table class="layui-table" lay-even>
+  <colgroup>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+  </colgroup>
+  <thead>
+    <tr>
+      <th>交换空间总量</th>
+      <th>已使用</th>
+      <th>可用</th>
+      <th>已使用%</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+        <td>{{ info.memory_total_swap}}</td>
+        <td>{{ info.memory_used_swap}}</td>
+        <td>{{ info.memory_free_swap}}</td>
+        <td><div class="layui-progress" lay-showpercent="true">
+            <div class="layui-progress-bar" lay-percent="{{ info.memory_swap_percent}}%"></div>
+          </div>
+        </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<br>
+<div><a class="layui-btn layui-btn-xs">磁盘信息</a>
+<table class="layui-table" lay-even>
+    <colgroup>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+    <col class='layui-table-col-set'>
+  </colgroup>
+  <thead>
+    <tr>
+      <th>挂载点</th>
+      <th>磁盘总空间</th>
+        <th>已使用</th>
+        <th>可用</th>
+        <th>已使用%</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{{ info.disk_mount_point}}</td>
+      <td>{{ info.disk_total}}</td>
+      <td>{{ info.disk_used}}</td>
+      <td>{{ info.disk_free }}</td>
+      <td><div class="layui-progress" lay-showpercent="true">
+            <div class="layui-progress-bar" lay-percent="{{ info.disk_percent}}%"></div>
+          </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<script src="{% static 'js/layui.js' %}"></script>
+<script>
+    var progressBarList = document.querySelectorAll('.layui-progress-bar');
+    progressBarList.forEach(function (progressBar){
+        var diskPercent = parseInt(progressBar.getAttribute('lay-percent'), 10);
+        if (diskPercent > 80){
+            progressBar.classList.add('layui-bg-red');
+        }else if(diskPercent>60){
+            progressBar.classList.add('layui-bg-orange');
+        }else{
+            progressBar.classList.add('layui-bg-primary');
+        }
+    });
+
+</script>
 </body>
 </html>

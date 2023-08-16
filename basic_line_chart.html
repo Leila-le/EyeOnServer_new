@@ -7,11 +7,11 @@
 
 </head>
 <body >
-    <div id="b862e1d1c1b747e5a3fa0c6d97a3e095" class="chart-container" style="width:900px; height:500px; "></div>
+    <div id="038acd474c99494f981144c289fea0fc" class="chart-container" style="width:900px; height:500px; "></div>
     <script>
-        var chart_b862e1d1c1b747e5a3fa0c6d97a3e095 = echarts.init(
-            document.getElementById('b862e1d1c1b747e5a3fa0c6d97a3e095'), 'white', {renderer: 'canvas'});
-        var option_b862e1d1c1b747e5a3fa0c6d97a3e095 = {
+        var chart_038acd474c99494f981144c289fea0fc = echarts.init(
+            document.getElementById('038acd474c99494f981144c289fea0fc'), 'white', {renderer: 'canvas'});
+        var option_038acd474c99494f981144c289fea0fc = {
     "animation": true,
     "animationThreshold": 2000,
     "animationDuration": 1000,
@@ -37,42 +37,96 @@
     "series": [
         {
             "type": "line",
+            "name": "cpu\u4f7f\u7528\u7387",
             "connectNulls": false,
             "xAxisIndex": 0,
             "symbol": "emptyCircle",
             "symbolSize": 4,
             "showSymbol": true,
-            "smooth": false,
+            "smooth": true,
             "clip": true,
             "step": false,
             "data": [
                 [
-                    "Mon",
-                    820
+                    "2023/08/16 03:40:38",
+                    "0.91743"
                 ],
                 [
-                    "Tue",
-                    932
+                    "2023/08/16 03:40:38",
+                    "0.91743"
                 ],
                 [
-                    "Wed",
-                    901
+                    "2023/08/16 08:56:49",
+                    "0.91743"
                 ],
                 [
-                    "Thu",
-                    934
+                    "2023/08/16 08:56:49",
+                    "0.91743"
                 ],
                 [
-                    "Fri",
-                    1290
+                    "2023/08/16 08:57:42",
+                    "0.91743"
                 ],
                 [
-                    "Sat",
-                    1330
+                    "2023/08/16 08:57:42",
+                    "0.91743"
+                ]
+            ],
+            "hoverAnimation": true,
+            "label": {
+                "show": false,
+                "margin": 8
+            },
+            "logBase": 10,
+            "seriesLayoutBy": "column",
+            "lineStyle": {
+                "show": true,
+                "width": 1,
+                "opacity": 1,
+                "curveness": 0,
+                "type": "solid"
+            },
+            "areaStyle": {
+                "opacity": 0
+            },
+            "zlevel": 0,
+            "z": 0
+        },
+        {
+            "type": "line",
+            "name": "\u5185\u5b58\u4f7f\u7528\u7387",
+            "connectNulls": false,
+            "xAxisIndex": 0,
+            "symbol": "emptyCircle",
+            "symbolSize": 4,
+            "showSymbol": true,
+            "smooth": true,
+            "clip": true,
+            "step": false,
+            "data": [
+                [
+                    "2023/08/16 03:40:38",
+                    "88.38146699020774"
                 ],
                 [
-                    "Sun",
-                    1320
+                    "2023/08/16 03:40:38",
+                    "88.38146699020774"
+                ],
+                [
+                    "2023/08/16 08:56:49",
+                    "88.38146699020774"
+                ],
+                [
+                    "2023/08/16 08:56:49",
+                    "88.38146699020774"
+                ],
+                [
+                    "2023/08/16 08:57:42",
+                    "88.38146699020774"
+                ],
+                [
+                    "2023/08/16 08:57:42",
+                    "88.38146699020774"
                 ]
             ],
             "hoverAnimation": true,
@@ -99,7 +153,8 @@
     "legend": [
         {
             "data": [
-                ""
+                "cpu\u4f7f\u7528\u7387",
+                "\u5185\u5b58\u4f7f\u7528\u7387"
             ],
             "selected": {},
             "show": true,
@@ -125,7 +180,7 @@
         }
     ],
     "tooltip": {
-        "show": false,
+        "show": true,
         "trigger": "item",
         "triggerOn": "mousemove|click",
         "axisPointer": {
@@ -139,6 +194,7 @@
         "confine": false,
         "appendToBody": false,
         "transitionDuration": 0.4,
+        "formatter": "{}<br/>{b}",
         "textStyle": {
             "fontSize": 14
         },
@@ -149,6 +205,7 @@
     "xAxis": [
         {
             "type": "category",
+            "name": "%",
             "show": true,
             "scale": false,
             "nameLocation": "end",
@@ -169,13 +226,12 @@
                 }
             },
             "data": [
-                "Mon",
-                "Tue",
-                "Wed",
-                "Thu",
-                "Fri",
-                "Sat",
-                "Sun"
+                "2023/08/16 03:40:38",
+                "2023/08/16 03:40:38",
+                "2023/08/16 08:56:49",
+                "2023/08/16 08:56:49",
+                "2023/08/16 08:57:42",
+                "2023/08/16 08:57:42"
             ]
         }
     ],
@@ -211,8 +267,11 @@
     "title": [
         {
             "show": true,
+            "text": "cpu&memory",
             "target": "blank",
             "subtarget": "blank",
+            "left": "center",
+            "top": "20px",
             "padding": 5,
             "itemGap": 10,
             "textAlign": "auto",
@@ -221,7 +280,7 @@
         }
     ]
 };
-        chart_b862e1d1c1b747e5a3fa0c6d97a3e095.setOption(option_b862e1d1c1b747e5a3fa0c6d97a3e095);
+        chart_038acd474c99494f981144c289fea0fc.setOption(option_038acd474c99494f981144c289fea0fc);
     </script>
 </body>
 </html>

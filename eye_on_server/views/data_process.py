@@ -15,6 +15,7 @@ def now_time():
     return naive_datetime
 
 
+# 存放未存入数据库的json文件路径
 json_folder = '/home/leila/djangoProject/EyeOnServer/datas'
 
 
@@ -57,7 +58,7 @@ def data_to_model(request):
             cpu_idle = cpu_data.get('idle')
             cpu_iowait = cpu_data.get('iowait')
             cpu_nice = cpu_data.get('nice')
-            cpu_percent = cpu_data.get('percent')
+            cpu_percent = cpu_data.get('percent')*100
             cpu_softirq = cpu_data.get('softirq')
             cpu_steal = cpu_data.get('steal')
             cpu_system = cpu_data.get('system')
@@ -71,7 +72,7 @@ def data_to_model(request):
             disk_mount_point = disk_data.get('mount_point')
             disk_total = disk_data.get('total')
             disk_used = disk_data.get('used')
-            disk_percent = disk_used / disk_total
+            disk_percent = disk_used / disk_total*100
             # 内存使用情况
             memory_data = data.get('memory', {})
             memory_free_physics = memory_data.get('free_physics')
@@ -83,8 +84,8 @@ def data_to_model(request):
             memory_used_physics = memory_data.get('used_physics')
             memory_used_swap = memory_data.get('used_swap')
             memory_ava = memory_total_physics - memory_used_physics
-            memory_percent = memory_used_physics / memory_total_physics
-
+            memory_percent = memory_used_physics / memory_total_physics*100
+            memory_swap_percent = memory_used_swap / memory_total_swap*100
             # time_ = now_time()
             SeverInfo.objects.create(name=name, license_name=license_, cpu_guest=cpu_guest,
                                      cpu_guest_nice=cpu_guest_nice,
@@ -104,6 +105,6 @@ def data_to_model(request):
                                      memory_used_physics=memory_used_physics, memory_used_swap=memory_used_swap,
                                      memory_ava=memory_ava,
                                      memory_percent=memory_percent,
+                                     memory_swap_percent=memory_swap_percent,
                                      )
         return HttpResponse("ok")
-

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block ServerChart %}
+<div class="layui-bg-gray" style="padding: 16px;">
+{% for info in unique_license_list %}
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md6">
+      <div class="layui-card">
+        <div class="layui-card-header">{{ info }}</div>
+        <div class="layui-card-body">
+            {{ data_line | safe}}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}
