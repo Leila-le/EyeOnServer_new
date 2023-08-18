@@ -13,19 +13,22 @@ from .chart import Chart
 
 def server(request):
     # 获取模型对象列表并陈列
-    overview_data = {}
+    unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
+
     data = []
-    objects = SeverInfo.objects.all()
-    for item in objects.iterator():
-        join_time_str = item.time.isoformat()
-        overview_data.update(name=item.name,
-                             license_name=item.license_name,
-                             memory=item.memory_percent,
-                             cpu=item.cpu_percent,
-                             disk=item.disk_percent,
-                             joinTime=join_time_str)
+    for unique_name in unique_license:
+        overview_data = {}
+        server_info_list = SeverInfo.objects.filter(license_name=unique_name).order_by('-time')
+        server_info = server_info_list.first()
+        overview_data.update(name=server_info.name,
+                             license_name=server_info.license_name,
+                             memory=server_info.memory_percent,
+                             cpu=server_info.cpu_percent,
+                             disk=server_info.disk_percent,
+                             joinTime=server_info.time)
         data.append(overview_data)
     merged_data = {'code': 0, 'data': data}
+
     file_path = './static/merger.json'
     try:
         with open(file_path, 'w') as f:
@@ -67,23 +70,30 @@ def draw_line(request):
 
 # CPU和内存使用率折线图
 def draw_lines(request):
-    chart = Chart()
-    x_time = []
-    y_cpu = []
-    y_memory = []
-    server_info_list = SeverInfo.objects.all()
-    unique_license = set()
+    unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
 
-    for server_info in server_info_list.values_list('cpu_percent', 'disk_percent', 'time', 'license_name'):
-        y_cpu.append(server_info[0])
-        y_memory.append(server_info[1])
-        time_ = server_info[2].strftime("%Y/%m/%d %H:%M:%S")
-        x_time.append(time_)
-        unique_license.add(server_info[3])
-    data_line = chart.lines_chart('cpu&memory', 'cpu&内存使用率', x_time, y_cpu, y_memory)
-    # print('data_line', data_line)
-    unique_license_list = list(unique_license)
-    return render(request, 'ServerChart.html', locals())
+    data_lines = []
+    disk_percent_list = []
+    for name in unique_license:
+        x_time = []
+        y_cpu = []
+        y_memory = []
+        server_info_list = SeverInfo.objects.filter(license_name=name).order_by('time')
+        # print('server_info_list', server_info_list)
+        disk_percent = server_info_list.values('disk_percent').last()
+        for server_info in server_info_list:
+            x_time.append(server_info.time)
+            y_cpu.append(server_info.cpu_percent)
+            y_memory.append(server_info.memory_percent)
+        chart = Chart()
+        value_disk = disk_percent.get("disk_percent")
+        data_line = chart.lines_chart(f'{name}', f'CPU_Usage_{name}', x_time, y_cpu, y_memory, value_disk)
+        data_lines.append(data_line)
+        disk_percent_list.append(value_disk)
+    reversed_list = disk_percent_list[::-1]
+    return render(request, "ServerChart.html", {'data_lines': data_lines, 'disk_percent': reversed_list})
+
+
 def systems(request):
     if request.method == 'GET':
         license_name = request.GET.get('license_name')

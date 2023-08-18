@@ -8,7 +8,7 @@
         "iowait": 0,
         "irq": 0,
         "nice": 0,
-        "percent": 0.0091743,
+        "percent": 0.0066743,
         "softirq": 0,
         "steal": 0,
         "system": 0,
@@ -20,7 +20,7 @@
         "free": 52655087616,
         "mount_point": "/home/",
         "total": 52655087616,
-        "used": 46537338880
+        "used": 537338880
     },
     "memory": {
         "free_physics": 434221056,

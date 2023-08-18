@@ -1,5 +1,6 @@
 import pyecharts.options as opts
-from pyecharts.charts import Line
+from pyecharts.charts import Line, Timeline
+from pyecharts.commons.utils import JsCode
 from pyecharts.globals import CurrentConfig
 
 from pyecharts.charts import Gauge
@@ -7,16 +8,21 @@ from pyecharts.charts import Gauge
 from pyecharts.charts import Pie
 
 CurrentConfig.ONLINE_HOST = 'http://192.168.199.42:8000/static/js/echarts/'
-
+from pyecharts import options as opts
+from pyecharts.charts import Bar, Timeline
+from pyecharts.faker import Faker
 
 class Chart(object):
     # 折线图
-    def lines_chart(self, title, chart_id, x_data, y_data, y2_data):
+
+    def lines_chart(self, title, chart_id, x_data, y_data, y2_data, disk):
+        t1 = Timeline()
         line_ = (
-            Line()
+            Line(opts.InitOpts(width='100%', height='100%'))
             .set_global_opts(
                 title_opts=opts.TitleOpts(title=title, pos_left='center', pos_top='20px'),
-                tooltip_opts=opts.TooltipOpts(is_show=True, trigger='item', formatter="{}<br/>{b}"),
+                tooltip_opts=opts.TooltipOpts(is_show=True, trigger='axis'),
+                legend_opts=opts.LegendOpts(pos_left='left'),
                 xaxis_opts=opts.AxisOpts(type_="category"),
                 yaxis_opts=opts.AxisOpts(
                     type_="value",
@@ -24,10 +30,11 @@ class Chart(object):
                     splitline_opts=opts.SplitLineOpts(is_show=True),
                     name='%',
                 ),
+
             )
             .add_xaxis(xaxis_data=x_data)
             .add_yaxis(
-                series_name="cpu使用率",
+                series_name="CPU",
                 y_axis=y_data,
                 symbol="emptyCircle",
                 is_symbol_show=True,
@@ -35,7 +42,7 @@ class Chart(object):
                 is_smooth=True
             )
             .add_yaxis(
-                series_name="内存使用率",
+                series_name="内存",
                 y_axis=y2_data,
                 symbol="emptyCircle",
                 is_symbol_show=True,
@@ -69,3 +76,17 @@ class Chart(object):
         )
         pie_.chart_id = chart_id
         return pie_.render_embed()  # 返回框架,便于植入home.html中
+
+    def time_line(self):
+        x = Faker.choose()
+        tl = Timeline()
+        for i in range(2015, 2020):
+            bar = (
+                Bar()
+                .add_xaxis(x)
+                .add_yaxis("商家A", Faker.values())
+                .add_yaxis("商家B", Faker.values())
+                .set_global_opts(title_opts=opts.TitleOpts(title='1'))
+            )
+            tl.add(bar, "{}年".format(i))
+        return tl.render_embed()

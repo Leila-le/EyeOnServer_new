@@ -125,3 +125,5 @@ STATICFILES_DIRS = [
 # # 在 settings.py 中设置 CSRF 设置
 # CSRF_COOKIE_NAME = 'my_csrf_cookie'
 # CSRF_COOKIE_AGE = 3600  # CSRF 令牌的有效期为 1 小时
+
+

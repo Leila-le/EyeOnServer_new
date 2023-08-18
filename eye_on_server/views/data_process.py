@@ -1,51 +1,41 @@
 # 用于将json数据传输至数据库
 import datetime
-import json
 import os
-
+import json
 from django.http import JsonResponse, HttpResponse, HttpRequest
 from django.views.decorators.csrf import csrf_exempt
 
 from eye_on_server.models import SeverInfo
 
-
-def now_time():
-    naive_datetime = str(datetime.datetime.now())
-    naive_datetime = naive_datetime.split('.')[0]
-    return naive_datetime
-
-
-# 存放未存入数据库的json文件路径
 json_folder = '/home/leila/djangoProject/EyeOnServer/datas'
 
 
-def merge_json_files(folder_path, file_content=None):
-    if file_content is None:
-        file_path_content = []
-    # 遍历文件夹中的所有文件和子文件夹
-    for file_name in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, file_name)
-        print('file_path', file_path)
-        # 如果是文件,合并处理
-        if os.path.isfile(file_path):
-            file_path_content.append(file_path)
-        # 如果是子文件夹,则递归
-        elif os.path.isdir(file_path):
-            merge_json_files(file_path, file_path_content)
-    return file_path_content
+# 存放未存入数据库的json文件路径
 
 
 @csrf_exempt
 def data_to_model(request):
     if request.method == 'POST':
-        merged_data = {}
+
         datas = []
-        file_path_content = merge_json_files(json_folder)
+        # file_path_content = merge_json_files(json_folder)
+        file_path_content = json.loads(request.body)
+        # 在data字典中获取files_path的值
+        print("file_path_content", file_path_content)
         if file_path_content:
             for file_path in file_path_content:
+                merged_data = {}
                 with open(file_path) as f:
                     merged_data.update(eval(f.read()))
+
+                    time_ = os.path.getctime(file_path)
+                    time_datetime = datetime.datetime.fromtimestamp(time_)
+                    time_str = time_datetime.strftime('%Y-%m-%d %H:%M:%S')
+                    merged_data.update({'time': time_str})
+                # print('time_str', time_str)
+                # print('merged_data', merged_data)
                 datas.append(merged_data)
+        # print("datas: ",datas)
         # 将数据存入数据表中
         for data in datas:
             name = data.get('name')
@@ -58,7 +48,7 @@ def data_to_model(request):
             cpu_idle = cpu_data.get('idle')
             cpu_iowait = cpu_data.get('iowait')
             cpu_nice = cpu_data.get('nice')
-            cpu_percent = cpu_data.get('percent')*100
+            cpu_percent = cpu_data.get('percent') * 100
             cpu_softirq = cpu_data.get('softirq')
             cpu_steal = cpu_data.get('steal')
             cpu_system = cpu_data.get('system')
@@ -72,7 +62,7 @@ def data_to_model(request):
             disk_mount_point = disk_data.get('mount_point')
             disk_total = disk_data.get('total')
             disk_used = disk_data.get('used')
-            disk_percent = disk_used / disk_total*100
+            disk_percent = disk_used / disk_total * 100
             # 内存使用情况
             memory_data = data.get('memory', {})
             memory_free_physics = memory_data.get('free_physics')
@@ -84,9 +74,10 @@ def data_to_model(request):
             memory_used_physics = memory_data.get('used_physics')
             memory_used_swap = memory_data.get('used_swap')
             memory_ava = memory_total_physics - memory_used_physics
-            memory_percent = memory_used_physics / memory_total_physics*100
-            memory_swap_percent = memory_used_swap / memory_total_swap*100
-            # time_ = now_time()
+            memory_percent = memory_used_physics / memory_total_physics * 100
+            memory_swap_percent = memory_used_swap / memory_total_swap * 100
+            time_ = data.get('time')
+            # print('time_', time_)
             SeverInfo.objects.create(name=name, license_name=license_, cpu_guest=cpu_guest,
                                      cpu_guest_nice=cpu_guest_nice,
                                      cpu_idle=cpu_idle, cpu_iowait=cpu_iowait, cpu_nice=cpu_nice,
@@ -106,5 +97,6 @@ def data_to_model(request):
                                      memory_ava=memory_ava,
                                      memory_percent=memory_percent,
                                      memory_swap_percent=memory_swap_percent,
+                                     time=time_,
                                      )
         return HttpResponse("ok")
