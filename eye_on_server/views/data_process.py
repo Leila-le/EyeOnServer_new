@@ -6,6 +6,8 @@ from django.http import JsonResponse, HttpResponse, HttpRequest
 from django.views.decorators.csrf import csrf_exempt
 
 from eye_on_server.models import SeverInfo
+from eye_on_server.views.send_dingtalk import send_alert_to_dingtalk
+import shutil
 
 json_folder = '/home/leila/djangoProject/EyeOnServer/datas'
 
@@ -16,7 +18,7 @@ json_folder = '/home/leila/djangoProject/EyeOnServer/datas'
 @csrf_exempt
 def data_to_model(request):
     if request.method == 'POST':
-
+        target_file = '/home/leila/djangoProject/EyeOnServer/datas/read'
         datas = []
         # file_path_content = merge_json_files(json_folder)
         file_path_content = json.loads(request.body)
@@ -32,10 +34,8 @@ def data_to_model(request):
                     time_datetime = datetime.datetime.fromtimestamp(time_)
                     time_str = time_datetime.strftime('%Y-%m-%d %H:%M:%S')
                     merged_data.update({'time': time_str})
-                # print('time_str', time_str)
-                # print('merged_data', merged_data)
+                shutil.move(file_path, target_file)
                 datas.append(merged_data)
-        # print("datas: ",datas)
         # 将数据存入数据表中
         for data in datas:
             name = data.get('name')
@@ -77,7 +77,23 @@ def data_to_model(request):
             memory_percent = memory_used_physics / memory_total_physics * 100
             memory_swap_percent = memory_used_swap / memory_total_swap * 100
             time_ = data.get('time')
-            # print('time_', time_)
+            alerts = {'name: ': name, "license_name: ": license_}
+            send_alert = False
+            if cpu_percent > 70:
+                alerts.update({"当前cpu使用率: ": cpu_percent})
+                send_alert = True
+                # send_alert_to_dingtalk(ip, {"cpu已使用:": cpu_percent})
+            if memory_percent > 80:
+                alerts.update({"当前内存使用率: ": memory_percent})
+                send_alert = True
+                # send_alert_to_dingtalk(ip, {"内存已使用:": memory_per})
+            if disk_percent > 80:
+                alerts.update({"当前磁盘使用率: ": disk_percent})
+                send_alert = True
+                # send_alert_to_dingtalk(ip, {"磁盘已使用:": disk_percent})
+            alerts.update({" ": time_})
+            if send_alert:
+                send_alert_to_dingtalk("资源使用预警:\n", alerts)
             SeverInfo.objects.create(name=name, license_name=license_, cpu_guest=cpu_guest,
                                      cpu_guest_nice=cpu_guest_nice,
                                      cpu_idle=cpu_idle, cpu_iowait=cpu_iowait, cpu_nice=cpu_nice,

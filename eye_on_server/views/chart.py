@@ -1,16 +1,12 @@
-import pyecharts.options as opts
-from pyecharts.charts import Line, Timeline
-from pyecharts.commons.utils import JsCode
+from pyecharts.charts import Line
 from pyecharts.globals import CurrentConfig
-
 from pyecharts.charts import Gauge
-
 from pyecharts.charts import Pie
-
-CurrentConfig.ONLINE_HOST = 'http://192.168.199.42:8000/static/js/echarts/'
 from pyecharts import options as opts
 from pyecharts.charts import Bar, Timeline
 from pyecharts.faker import Faker
+CurrentConfig.ONLINE_HOST = 'http://192.168.199.42:8000/static/js/echarts/'
+
 
 class Chart(object):
     # 折线图

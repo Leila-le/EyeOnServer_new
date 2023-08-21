@@ -21,14 +21,13 @@
       </div>
     </div>
     {% endfor %}
-
   </div>
 </div>
 <script src="{% static 'js/layui.js' %}"></script>
 <script>
-    var progressBarList = document.querySelectorAll('.layui-progress-bar');
+    let progressBarList = document.querySelectorAll('.layui-progress-bar');
     progressBarList.forEach(function (progressBar){
-        var diskPercent = parseInt(progressBar.getAttribute('lay-percent'), 10);
+        let diskPercent = parseInt(progressBar.getAttribute('lay-percent'), 10);
         if (diskPercent > 80){
             progressBar.classList.add('layui-bg-red');
         }else if(diskPercent>60){
@@ -37,5 +36,6 @@
             progressBar.classList.add('layui-bg-primary');
         }
     });
+
 </script>
 {% endblock %}
