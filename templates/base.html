@@ -98,7 +98,29 @@
       let util = layui.util;
       let $ = layui.$;
       let form = layui.form;
-      let uniqueLicenseList = {% raw %}{{ unique_license_list|safe }}{% endraw %}
+      let uniqueLicense_str = "{{ unique_license_list|safe}}"
+      let uniqueLicense = uniqueLicense_str.slice(1, -1);  // 去除方括号
+      let arr = uniqueLicense.split(", ");
+      let checkboxContainer = document.getElementById("checkbox-container");
+      for (let i = 0; i < arr.length; i++) {
+          let license = arr[i];
+          console.log(license);
+          // 创建复选框元素
+          let checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.name = "agreement";
+          checkbox.value = license;
+          checkbox.title = license;
+          checkbox.setAttribute("lay-filter", "demo-checkbox-filter");
+
+          // 创建标签元素
+          let label = document.createElement("label");
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(license));
+
+          // 将复选框和标签添加到容器中
+          checkboxContainer.appendChild(label);
+      }
       // 输入框点缀事件 - 搜索示例
       document.getElementById('searchIcon').addEventListener('click', function() {
           let searchInput = document.getElementById('searchInput');
@@ -118,8 +140,7 @@
             type: 1,
             title: '更多',
             content: '<div style="padding: 15px;">筛选<div class="layui-form">' +
-                    '<div class="layui-form-item">' +
-                    '<input type="checkbox" name="agreement" value="1" title=title1 lay-filter="demo-checkbox-filter">' +
+                    '<div class="layui-form-item" id="checkbox-container">' +
                     '</div>' +
                     '<div class="layui-form-item">' +
                     '<button class="layui-btn" lay-submit lay-filter="demo-checkbox-submit">确认</button>' +
@@ -134,7 +155,6 @@
                 form.render();//渲染复选框
               }
           });
-
         }
       });
       // checkbox 事件
