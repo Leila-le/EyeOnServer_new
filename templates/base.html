@@ -48,12 +48,23 @@
       </li>
         <!--右侧菜单-->
       <li class="layui-nav-item" lay-header-event="menuRight" lay-unselect>
-        <a href="javascript:;">
+        <a href="javascript:;" onclick="showPopupContent();">
           <i class="layui-icon layui-icon-more-vertical"></i>
-
         </a>
-
       </li>
+        <div id="popupContent" style="display: none;">
+          <div style="padding: 15px;">
+            筛选
+            <div class="layui-form">
+              <div class="layui-form-item" id="checkbox-container">
+                <!-- 复选框内容 -->
+              </div>
+              <div class="layui-form-item">
+                <button class="layui-btn" lay-submit lay-filter="demo-checkbox-submit">确认</button>
+              </div>
+            </div>
+          </div>
+        </div>
     </ul>
   </div>
   <div class="layui-side " style="background-color: #23292e">
@@ -135,27 +146,48 @@
       });
       //头部事件
       util.event('lay-header-event', {
-        menuRight: function(){  // 右侧菜单事件
-          layer.open({
-            type: 1,
-            title: '更多',
-            content: '<div style="padding: 15px;">筛选<div class="layui-form">' +
-                    '<div class="layui-form-item" id="checkbox-container">' +
-                    '</div>' +
-                    '<div class="layui-form-item">' +
-                    '<button class="layui-btn" lay-submit lay-filter="demo-checkbox-submit">确认</button>' +
-                    '</div>' +
-                    '</div></div>',
-            area: ['260px', '100%'],
-            offset: 'rt', // 右上角
-            anim: 'slideLeft', // 从右侧抽屉滑出
-            shadeClose: true,
-            scrollbar: false,
-              success:function (){
-                form.render();//渲染复选框
-              }
-          });
-        }
+        {#menuRight: function(){  // 右侧菜单事件#}
+        {#  layer.open({#}
+        {#    type: 1,#}
+        {#    title: '更多',#}
+        {#    content: '<div style="padding: 15px;">筛选<div class="layui-form">' +#}
+        {#            '<div class="layui-form-item" id="checkbox-container">' +#}
+        {#            '</div>' +#}
+        {#            '<div class="layui-form-item">' +#}
+        {#            '<button class="layui-btn" lay-submit lay-filter="demo-checkbox-submit">确认</button>' +#}
+        {#            '</div>' +#}
+        {#            '</div></div>',#}
+        {#    area: ['260px', '100%'],#}
+        {#    offset: 'rt', // 右上角#}
+        {#    anim: 'slideLeft', // 从右侧抽屉滑出#}
+        {#    shadeClose: true,#}
+        {#    scrollbar: false,#}
+        {#      success:function (){#}
+        {#        form.render();//渲染复选框#}
+        {#      }#}
+        {#  });#}
+        {# }#}
+        function showPopupContent() {
+              let popupContent = document.getElementById("popupContent");
+              popupContent.style.display = "block";
+
+              layer.open({
+                type: 1,
+                title: '更多',
+                content: popupContent,
+                area: ['260px', '100%'],
+                offset: 'rt', // 右上角
+                anim: 'slideLeft', // 从右侧抽屉滑出
+                shadeClose: true,
+                scrollbar: false,
+                success: function () {
+                  form.render(); // 渲染复选框
+                },
+                end: function () {
+                  popupContent.style.display = "none"; // 关闭弹出层时隐藏内容
+                }
+              });
+            }
       });
       // checkbox 事件
       form.on('checkbox(demo-checkbox-filter)', function(data){
