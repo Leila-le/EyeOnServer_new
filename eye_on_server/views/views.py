@@ -38,11 +38,7 @@ def get_unique_license():
     return unique_license, unique_license_json
 
 
-# CPU和内存使用率折线图
-def draw_lines(request):
-    unique_license, _ = get_unique_license()
-    # 获取模型对象列表并陈列
-
+def get_draw_line(unique_license):
     data_lines = []
     disk_percent_list = []
     for name in unique_license:
@@ -61,32 +57,23 @@ def draw_lines(request):
         data_lines.append(data_line)
         disk_percent_list.append(value_disk)
     reversed_list = disk_percent_list[::-1]
+    return data_lines, reversed_list
+
+
+# CPU和内存使用率折线图
+def draw_lines(request):
+    unique_license, unique_license_json = get_unique_license()
+    # 获取模型对象列表并陈列
+    data_lines, reversed_list = get_draw_line(unique_license)
+
     return render(request, "ServerChart.html",
                   {"data_lines": data_lines, "disk_percent": reversed_list, "unique_license_json": unique_license_json})
 
 
 def select_draw_line(request):
-    data_lines = []
-    disk_percent_list = []
     if request.method == 'POST':
-        selected_license = request.POST.get('license')
-        for name in selected_license:
-            x_time = []
-            y_cpu = []
-            y_memory = []
-
-            server_info_list = SeverInfo.objects.filter(license_name=name).order_by('time')
-            disk_percent = server_info_list.values('disk_percent').last()
-            for server_info in server_info_list:
-                x_time.append(server_info.time)
-                y_cpu.append(server_info.cpu_percent)
-                y_memory.append(server_info.memory_percent)
-            chart = Chart()
-            value_disk = disk_percent.get("disk_percent")
-            data_line = chart.lines_chart(f'{name}', f'CPU_Usage_{name}', x_time, y_cpu, y_memory, value_disk)
-            data_lines.append(data_line)
-            disk_percent_list.append(value_disk)
-        reversed_list = disk_percent_list[::-1]
+        license_name = request.POST.get('license_name')
+        data_lines, reversed_list = get_draw_line(license_name)
         return render(request, "select.html", {"data_lines": data_lines, "disk_percent": reversed_list})
 
 
