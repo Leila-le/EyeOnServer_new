@@ -31,12 +31,17 @@ def server(request):
     return render(request, 'ServerList.html')
 
 
-# CPU和内存使用率折线图
-def draw_lines(request):
+def get_unique_license():
     unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
-    # 获取模型对象列表并陈列
     unique_license_list = list(unique_license)
     unique_license_json = json.dumps(unique_license_list)
+    return unique_license, unique_license_json
+
+
+# CPU和内存使用率折线图
+def draw_lines(request):
+    unique_license, _ = get_unique_license()
+    # 获取模型对象列表并陈列
 
     data_lines = []
     disk_percent_list = []
@@ -56,7 +61,8 @@ def draw_lines(request):
         data_lines.append(data_line)
         disk_percent_list.append(value_disk)
     reversed_list = disk_percent_list[::-1]
-    return render(request, "ServerChart.html", {"data_lines": data_lines, "disk_percent": reversed_list, "unique_license_json": unique_license_json})
+    return render(request, "ServerChart.html",
+                  {"data_lines": data_lines, "disk_percent": reversed_list, "unique_license_json": unique_license_json})
 
 
 def select_draw_line(request):
@@ -85,10 +91,7 @@ def select_draw_line(request):
 
 
 def home(request):
-    unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
-    # 获取模型对象列表并陈列
-    unique_license_list = list(unique_license)
-    unique_license_json = json.dumps(unique_license_list)
+    _, unique_license_json = get_unique_license()
     return render(request, "base.html", {'unique_license_json': unique_license_json})
 
 
