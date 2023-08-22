@@ -73,13 +73,14 @@ def draw_lines(request):
 def select_draw_line(request):
     if request.method == 'POST':
         license_name = request.POST.get('license_name')
+        print('license_name', license_name)
         data_lines, reversed_list = get_draw_line(license_name)
         return render(request, "select.html", {"data_lines": data_lines, "disk_percent": reversed_list})
 
 
 def home(request):
     _, unique_license_json = get_unique_license()
-    return render(request, "base.html", {'unique_license_json': unique_license_json})
+    return render(request, "base.html", locals())
 
 
 class CustomLoginView(LoginView):

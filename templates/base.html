@@ -1,4 +1,3 @@
-
 {% load static %}
 
 <!DOCTYPE html>
@@ -18,19 +17,17 @@
     <!-- 头部区域（可配合layui 已有的水平导航） -->
     <ul class="layui-nav layui-layout-left">
       <!-- 移动端显示 -->
-      <li class="layui-nav-item layui-show-xs-inline-block " lay-header-event="menuLeft">
-{#        <i class="layui-icon layui-icon-spread-left"></i>#}
+      <li class="layui-nav-item layui-show-xs-inline-block " lay-header-event="menuLeft"></li>
+      <li class="layui-nav-item layui-hide-xs" style="display: inline-block;padding-right: 10px">
+         <div class="layui-input-group">
+            <label>
+                <input type="text" placeholder="搜索......" class="layui-input" lay-options="{split:true}" id="searchInput">
+            </label>
+            <div class=" layui-input-suffix" style="cursor: pointer;background-color: #23292e"><!--class="layui-input-split"-->
+                <i class="layui-icon layui-icon-search" style="font-size: 15px;color: #fafafa" lay-affix="search" id="searchIcon"></i>
+            </div>
+         </div>
       </li>
-{#        <li class="layui-nav-item layui-hide-xs" style="display: inline-block;padding-right: 10px">#}
-{#            <div class="layui-input-group">#}
-{#                <label>#}
-{#                    <input type="text" placeholder="搜索......" class="layui-input" lay-options="{split:true}" id="searchInput">#}
-{#                </label>#}
-{#                <div class=" layui-input-suffix" style="cursor: pointer;background-color: #23292e"><!--class="layui-input-split"-->#}
-{#                    <i class="layui-icon layui-icon-search" style="font-size: 15px;color: #fafafa" lay-affix="search" id="searchIcon"></i>#}
-{#              </div>#}
-{#            </div>#}
-{#        </li>#}
         <li class="layui-nav-item layui-hide-xs" style="display: inline-block;"><a href="/ServerChart">首页</a></li>
     </ul>
 
@@ -105,12 +102,10 @@
       const form = layui.form;
       const menu = document.getElementById('menu');
       const licenseList = document.getElementById('licenseList');
-
       //切换右菜单的展开和收起
       let licenseDataElement = document.getElementById('licenseData');
 
       let licenseCompanies = JSON.parse(licenseDataElement.getAttribute('data-license'));
-      {#console.log(licenseCompanies);#}
 
 
         //添加按钮事件
@@ -138,7 +133,8 @@
             let options='';
             //动态生成许可公司和按钮
             licenseCompanies.forEach(company =>{
-                const encodedCompany = encodeURIComponent(company);
+                {#const encodedCompany = encodeURIComponent(company);#}
+                {#console.log(encodedCompany);#}
                 options+=`<div class="layui-form-item"><input type="checkbox" name="licenses" title="${company}"></div>`;
             });
             options+='<button class="layui-btn layui-btn-primary generate-btn">确定</button>'
@@ -147,52 +143,46 @@
 
         // 添加生成图表的按钮点击事件
         const generateBtns = document.querySelectorAll('.generate-btn');
-          {#generateBtns.forEach(btn => {#}
-          {#  btn.addEventListener('click', function() {#}
-          {#    const license = this.parentNode.querySelector('input[name="licenses"]').getAttribute('title');#}
-          {#    generateChart(license);#}
-          {#  });#}
-          {# });#}
+        console.log(11);
         generateBtns.forEach(btn =>{
-            btn.addEventListener('click',function (){
-                const license=this.parentNode.querySelector('input[name="licenses"]:checked').getAttribute('title');
-                console.log(license);
-                generateChart(license);
-
+            btn.addEventListener('click',()=>{
+                console.log('按钮被点击了');
+                const selectedLicenses = Array.from(this.parentNode.querySelectorAll('input[name="licenses"]:checked')).map(checkbox=>checkbox.getAttribute('title'));
+                generateFrames(selectedLicenses);
+                console.log(12);
             })
         })
-          // 根据选择生成图表
-          function generateChart(license) {
-              console.log(license);
-            const chartsContainer = document.getElementById('chartsContainer');
-            const chartDiv = document.createElement('div');
-            chartDiv.className = 'chart layui-elem-field';
-            chartDiv.innerHTML = `<h3>${license} Server Usage</h3>`;
-            chartsContainer.appendChild(chartDiv);
-            const chart = echarts.init(chartDiv);
+        console.log(13);
+        function generateFrames(selectedLicenses) {
+            selectedLicenses.forEach(function (license){
+                console.log(14);
+                $.ajax({
+                    url:'{% url "select" %}',
+                    type:'POST',
+                    data:{selectedLicenses:license},
+                    success:function (data){
+                        window.location.href=this.url
+                    },
+                    error:function (xhr, status, error){
+                    console.error("Error:", error);
+                }
+                })
+            })
+            console.log(15);
+        }
+        console.log(16);
+      // 输入框点缀事件 - 搜索示例
+      document.getElementById('searchIcon').addEventListener('click', function() {
+          let searchInput = document.getElementById('searchInput');
+          let searchValue = searchInput.value;
 
-            // 在这里使用 Pyecharts 生成图表并添加到 chartDiv 中
-            // 你可以根据你的具体需求使用 Pyecharts 的功能来绘制图表
-            {#element.render(); // 重新渲染元素，使layui的样式生效#}
-              fetch('{% url "select" %}',{
-                  method:'POST',
-                  body:JSON.stringify({license}),
-                  headers:{
-                      'Content-Type':'application/json',
-                  },
-              })
-              .then(response=>response.json())
-              .then(data=>{
-                  const chartImageUrl ={% url "select" %} ;
-                  const chartContainer = document.getElementById('chartContainer');
-                  chartContainer.innerHTML='<img src="${chartImageUrl}" alt="Generated Chart">'
-               })
-              .catch(error => {
-                console.error('Error generating chart:', error);
-              });
-              element.render(); // 重新渲染元素，使layui的样式生效
-
-           }
+          if (searchValue.trim() === '') {
+            layui.layer.msg('请输入搜索内容');
+            return;
+          }
+          // 模拟搜索跳转
+          location.href = '?keywords=' + searchValue;
+      });
     });
     layui.use(function(){
       let flow = layui.flow;
