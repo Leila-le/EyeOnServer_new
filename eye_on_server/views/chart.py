@@ -5,7 +5,8 @@ from pyecharts.charts import Pie
 from pyecharts import options as opts
 from pyecharts.charts import Bar, Timeline
 from pyecharts.faker import Faker
-CurrentConfig.ONLINE_HOST = 'http://192.168.199.42:8000/static/js/echarts/'
+# CurrentConfig.ONLINE_HOST = 'http://192.168.199.42:8000/static/js/echarts/'
+# CurrentConfig.ONLINE_HOST = 'http://127.0.0.1:8000/static/js/echarts/'
 
 
 class Chart(object):

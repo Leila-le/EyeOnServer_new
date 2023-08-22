@@ -30,5 +30,5 @@ urlpatterns = [
     path('ServerList/', views.server, name='ServerList'),
     path('ServerChart/', views.draw_lines, name='ServerChart'),
     path('system/', views.systems, name='system'),
-
+    path('select/', views.select_draw_line, name='select')
 ]

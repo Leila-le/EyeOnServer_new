@@ -13,7 +13,7 @@
 </head>
 <body>
 <div class="layui-layout layui-layout-admin" style="background-color: #9f9f9f">
-  <div class="layui-header">
+  <div class="layui-header" >
     <div class="layui-logo layui-hide-xs layui-bg-black layui-col-md3">硬件资源监控</div>
     <!-- 头部区域（可配合layui 已有的水平导航） -->
     <ul class="layui-nav layui-layout-left">
@@ -21,16 +21,16 @@
       <li class="layui-nav-item layui-show-xs-inline-block " lay-header-event="menuLeft">
 {#        <i class="layui-icon layui-icon-spread-left"></i>#}
       </li>
-        <li class="layui-nav-item layui-hide-xs" style="display: inline-block;padding-right: 10px">
-            <div class="layui-input-group">
-                <label>
-                    <input type="text" placeholder="搜索......" class="layui-input" lay-options="{split:true}" id="searchInput">
-                </label>
-                <div class=" layui-input-suffix" style="cursor: pointer;background-color: #23292e"><!--class="layui-input-split"-->
-                    <i class="layui-icon layui-icon-search" style="font-size: 15px;color: #fafafa" lay-affix="search" id="searchIcon"></i>
-              </div>
-            </div>
-        </li>
+{#        <li class="layui-nav-item layui-hide-xs" style="display: inline-block;padding-right: 10px">#}
+{#            <div class="layui-input-group">#}
+{#                <label>#}
+{#                    <input type="text" placeholder="搜索......" class="layui-input" lay-options="{split:true}" id="searchInput">#}
+{#                </label>#}
+{#                <div class=" layui-input-suffix" style="cursor: pointer;background-color: #23292e"><!--class="layui-input-split"-->#}
+{#                    <i class="layui-icon layui-icon-search" style="font-size: 15px;color: #fafafa" lay-affix="search" id="searchIcon"></i>#}
+{#              </div>#}
+{#            </div>#}
+{#        </li>#}
         <li class="layui-nav-item layui-hide-xs" style="display: inline-block;"><a href="/ServerChart">首页</a></li>
     </ul>
 
@@ -47,24 +47,18 @@
         </dl>
       </li>
         <!--右侧菜单-->
-      <li class="layui-nav-item" lay-header-event="menuRight" lay-unselect>
-        <a href="javascript:;" onclick="showPopupContent();">
-          <i class="layui-icon layui-icon-more-vertical"></i>
-        </a>
-      </li>
-        <div id="popupContent" style="display: none;">
-          <div style="padding: 15px;">
-            筛选
-            <div class="layui-form">
-              <div class="layui-form-item" id="checkbox-container">
-                <!-- 复选框内容 -->
-              </div>
-              <div class="layui-form-item">
-                <button class="layui-btn" lay-submit lay-filter="demo-checkbox-submit">确认</button>
-              </div>
-            </div>
-          </div>
+        <li class="layui-nav-item" lay-header-event="menuRight" lay-unselect>
+            <a href="javascript:;">
+{#                <i class="layui-icon layui-icon-more-vertical"></i>#}
+                <button class="layui-btn" id="openMenu" >Menu</button>
+            </a>
+        </li>
+        <div id="menu" class="layui-col-md3 layui-hide-xs"  style="display: none;">
+            <div id="licenseData" data-license="{{ unique_license_json }}"></div>
+            <h2>选择待展示的许可公司</h2>
+            <ul class="layui-form" id="licensezlist"></ul>
         </div>
+        <div id="chartsContainer" class="layui-col-md9"></div>
     </ul>
   </div>
   <div class="layui-side " style="background-color: #23292e">
@@ -82,132 +76,123 @@
       </ul>
     </div>
   </div>
-  </div>
-    <div class="layui-body layui-fluid layui-col-md10">
+
+  <div class="layui-body layui-fluid layui-col-md10" >
     <!-- 内容主体区域 -->
     <div style="background-color: #e2e2e2 ;padding-top: 70px ">
       <div class="layui-card layui-panel" style="background-color: #eeeeee">
-
         {% block Server_list %}{% endblock %}
         {% block ServerChart %}{% endblock %}
-
       </div>
       <br><br>
     </div>
   </div>
-<div class="layui-footer">
+</div>
+<div class="layui-footer" >
     <!-- 底部固定区域 -->
     底部固定区域
 </div>
 
 <script src="{% static "/js/layui.js" %}"></script>
+<script src="{% static 'js/echarts/echarts.min.js' %}"></script>
 <script>
     //JS
     layui.use(['element', 'layer', 'util', 'form'], function(){
-      let element = layui.element;
+      const element = layui.element;
       let layer = layui.layer;
       let util = layui.util;
       let $ = layui.$;
-      let form = layui.form;
-      let uniqueLicense_str = "{{ unique_license_list|safe}}"
-      let uniqueLicense = uniqueLicense_str.slice(1, -1);  // 去除方括号
-      let arr = uniqueLicense.split(", ");
-      let checkboxContainer = document.getElementById("checkbox-container");
-      for (let i = 0; i < arr.length; i++) {
-          let license = arr[i];
-          console.log(license);
-          // 创建复选框元素
-          let checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.name = "agreement";
-          checkbox.value = license;
-          checkbox.title = license;
-          checkbox.setAttribute("lay-filter", "demo-checkbox-filter");
+      const form = layui.form;
+      const menu = document.getElementById('menu');
+      const licenseList = document.getElementById('licenseList');
 
-          // 创建标签元素
-          let label = document.createElement("label");
-          label.appendChild(checkbox);
-          label.appendChild(document.createTextNode(license));
+      //切换右菜单的展开和收起
+      let licenseDataElement = document.getElementById('licenseData');
 
-          // 将复选框和标签添加到容器中
-          checkboxContainer.appendChild(label);
-      }
-      // 输入框点缀事件 - 搜索示例
-      document.getElementById('searchIcon').addEventListener('click', function() {
-          let searchInput = document.getElementById('searchInput');
-          let searchValue = searchInput.value;
+      let licenseCompanies = JSON.parse(licenseDataElement.getAttribute('data-license'));
+      {#console.log(licenseCompanies);#}
 
-          if (searchValue.trim() === '') {
-            layui.layer.msg('请输入搜索内容');
-            return;
-          }
-          // 模拟搜索跳转
-          location.href = '?keywords=' + searchValue;
-      });
-      //头部事件
-      util.event('lay-header-event', {
-        {#menuRight: function(){  // 右侧菜单事件#}
-        {#  layer.open({#}
-        {#    type: 1,#}
-        {#    title: '更多',#}
-        {#    content: '<div style="padding: 15px;">筛选<div class="layui-form">' +#}
-        {#            '<div class="layui-form-item" id="checkbox-container">' +#}
-        {#            '</div>' +#}
-        {#            '<div class="layui-form-item">' +#}
-        {#            '<button class="layui-btn" lay-submit lay-filter="demo-checkbox-submit">确认</button>' +#}
-        {#            '</div>' +#}
-        {#            '</div></div>',#}
-        {#    area: ['260px', '100%'],#}
-        {#    offset: 'rt', // 右上角#}
-        {#    anim: 'slideLeft', // 从右侧抽屉滑出#}
-        {#    shadeClose: true,#}
-        {#    scrollbar: false,#}
-        {#      success:function (){#}
-        {#        form.render();//渲染复选框#}
-        {#      }#}
-        {#  });#}
-        {# }#}
-        function showPopupContent() {
-              let popupContent = document.getElementById("popupContent");
-              popupContent.style.display = "block";
 
-              layer.open({
-                type: 1,
-                title: '更多',
-                content: popupContent,
-                area: ['260px', '100%'],
+        //添加按钮事件
+        let openMenuBtn = document.getElementById('openMenu');
+        openMenuBtn.addEventListener('click', function (){
+            openMenu();
+        })
+        function openMenu(){
+            let content ='<div id="licenseList" class="layui-form">' +
+                {#'<h2>Select License Campanies</h2>' +#}
+                `${generateLicenseOptions()}</div>`;
+            layer.open({
+                type:1,
+                title:"Select Companies",
                 offset: 'rt', // 右上角
                 anim: 'slideLeft', // 从右侧抽屉滑出
+                area: ['300px', '100%'],
+                content:content,
                 shadeClose: true,
-                scrollbar: false,
-                success: function () {
-                  form.render(); // 渲染复选框
-                },
-                end: function () {
-                  popupContent.style.display = "none"; // 关闭弹出层时隐藏内容
-                }
+            });
+            //重新渲染layui的表单组件
+            form.render();
+        }
+        function generateLicenseOptions(){
+            let options='';
+            //动态生成许可公司和按钮
+            licenseCompanies.forEach(company =>{
+                const encodedCompany = encodeURIComponent(company);
+                options+=`<div class="layui-form-item"><input type="checkbox" name="licenses" title="${company}"></div>`;
+            });
+            options+='<button class="layui-btn layui-btn-primary generate-btn">确定</button>'
+            return options;
+        }
+
+        // 添加生成图表的按钮点击事件
+        const generateBtns = document.querySelectorAll('.generate-btn');
+          {#generateBtns.forEach(btn => {#}
+          {#  btn.addEventListener('click', function() {#}
+          {#    const license = this.parentNode.querySelector('input[name="licenses"]').getAttribute('title');#}
+          {#    generateChart(license);#}
+          {#  });#}
+          {# });#}
+        generateBtns.forEach(btn =>{
+            btn.addEventListener('click',function (){
+                const license=this.parentNode.querySelector('input[name="licenses"]:checked').getAttribute('title');
+                console.log(license);
+                generateChart(license);
+
+            })
+        })
+          // 根据选择生成图表
+          function generateChart(license) {
+              console.log(license);
+            const chartsContainer = document.getElementById('chartsContainer');
+            const chartDiv = document.createElement('div');
+            chartDiv.className = 'chart layui-elem-field';
+            chartDiv.innerHTML = `<h3>${license} Server Usage</h3>`;
+            chartsContainer.appendChild(chartDiv);
+            const chart = echarts.init(chartDiv);
+
+            // 在这里使用 Pyecharts 生成图表并添加到 chartDiv 中
+            // 你可以根据你的具体需求使用 Pyecharts 的功能来绘制图表
+            {#element.render(); // 重新渲染元素，使layui的样式生效#}
+              fetch('{% url "select" %}',{
+                  method:'POST',
+                  body:JSON.stringify({license}),
+                  headers:{
+                      'Content-Type':'application/json',
+                  },
+              })
+              .then(response=>response.json())
+              .then(data=>{
+                  const chartImageUrl ={% url "select" %} ;
+                  const chartContainer = document.getElementById('chartContainer');
+                  chartContainer.innerHTML='<img src="${chartImageUrl}" alt="Generated Chart">'
+               })
+              .catch(error => {
+                console.error('Error generating chart:', error);
               });
-            }
-      });
-      // checkbox 事件
-      form.on('checkbox(demo-checkbox-filter)', function(data){
-        let elem = data.elem; // 获得 checkbox 原始 DOM 对象
-        let checked = elem.checked; // 获得 checkbox 选中状态
-        let value = elem.value; // 获得 checkbox 值
-        let othis = data.othis; // 获得 checkbox 元素被替换后的 jQuery 对象
-        layer.msg('checked 状态: '+ elem.checked);
-      });
-      // 通过表单提交事件，演示 checkbox 不同状态下的字段结果
-      form.on('submit(demo-checkbox-submit)', function(data){
-        let field = data.field; // 获取表单字段值
-        // 显示填写结果，仅作演示用
-        layer.alert(JSON.stringify(field), {
-          title: '当前填写的字段值'
-        });
-        // 此处可执行 Ajax 等操作
-        // …
-        return false; // 阻止默认 form 跳转
-      });
+              element.render(); // 重新渲染元素，使layui的样式生效
+
+           }
     });
     layui.use(function(){
       let flow = layui.flow;

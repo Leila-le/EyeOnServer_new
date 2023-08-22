@@ -5,11 +5,10 @@ from .chart import Chart
 
 
 # Create your views here.
-# unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
-
 
 def server(request):
     data = []
+    unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
     for unique_name in unique_license:
         overview_data = {}
         server_info_list = SeverInfo.objects.filter(license_name=unique_name).order_by('-time')
@@ -35,6 +34,10 @@ def server(request):
 # CPU和内存使用率折线图
 def draw_lines(request):
     unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
+    # 获取模型对象列表并陈列
+    unique_license_list = list(unique_license)
+    unique_license_json = json.dumps(unique_license_list)
+
     data_lines = []
     disk_percent_list = []
     for name in unique_license:
@@ -53,7 +56,46 @@ def draw_lines(request):
         data_lines.append(data_line)
         disk_percent_list.append(value_disk)
     reversed_list = disk_percent_list[::-1]
-    return render(request, "ServerChart.html", {'data_lines': data_lines, 'disk_percent': reversed_list})
+    return render(request, "ServerChart.html", {"data_lines": data_lines, "disk_percent": reversed_list, "unique_license_json": unique_license_json})
+
+
+def select_draw_line(request):
+    data_lines = []
+    disk_percent_list = []
+    if request.method == 'POST':
+        selected_license = request.POST.get('license')
+        for name in selected_license:
+            x_time = []
+            y_cpu = []
+            y_memory = []
+
+            server_info_list = SeverInfo.objects.filter(license_name=name).order_by('time')
+            disk_percent = server_info_list.values('disk_percent').last()
+            for server_info in server_info_list:
+                x_time.append(server_info.time)
+                y_cpu.append(server_info.cpu_percent)
+                y_memory.append(server_info.memory_percent)
+            chart = Chart()
+            value_disk = disk_percent.get("disk_percent")
+            data_line = chart.lines_chart(f'{name}', f'CPU_Usage_{name}', x_time, y_cpu, y_memory, value_disk)
+            data_lines.append(data_line)
+            disk_percent_list.append(value_disk)
+        reversed_list = disk_percent_list[::-1]
+        return render(request, "select.html", {"data_lines": data_lines, "disk_percent": reversed_list})
+
+
+def home(request):
+    unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
+    # 获取模型对象列表并陈列
+    unique_license_list = list(unique_license)
+    unique_license_json = json.dumps(unique_license_list)
+    return render(request, "base.html", {'unique_license_json': unique_license_json})
+
+
+class CustomLoginView(LoginView):
+    template_name = 'admin/login.html'  # 替换为你自己的登录模板路径
+    redirect_authenticated_user = True
+    redirect_field_name = 'next'
 
 
 def systems(request):
@@ -61,20 +103,5 @@ def systems(request):
         license_name = request.GET.get('license_name')
         infos = SeverInfo.objects.filter(license_name=license_name).order_by('-time')
         info = infos.first()
-
         context = {'info': info}
-
         return render(request, "system.html", context=context)
-
-
-def home(request):
-    unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
-    # 获取模型对象列表并陈列
-    unique_license_list = list(unique_license)
-    return render(request, "base.html", {'unique_license_list': unique_license_list})
-
-
-class CustomLoginView(LoginView):
-    template_name = 'admin/login.html'  # 替换为你自己的登录模板路径
-    redirect_authenticated_user = True
-    redirect_field_name = 'next'

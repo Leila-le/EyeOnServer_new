@@ -77,18 +77,6 @@
                     console.error("Error:", error);
                 }
             });
-        {# } else if(obj.event === 'chart'){#}
-        {#    $.ajax({#}
-        {#        url:'{% url "chart" %}',#}
-        {#        type:'GET',#}
-        {#        data:{license_name:data.license_name},#}
-        {#        success:function (data){#}
-        {#            window.location.href=this.url#}
-        {#        },#}
-        {#        error:function (xhr, status, error){#}
-        {#            console.error("Error:", error);#}
-        {#        }#}
-        {#    });#}
         }
       });
 

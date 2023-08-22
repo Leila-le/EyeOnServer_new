@@ -16,18 +16,7 @@
     <ul class="layui-nav layui-layout-left">
       <!-- 移动端显示 -->
       <li class="layui-nav-item layui-show-xs-inline-block " lay-header-event="menuLeft">
-{#        <i class="layui-icon layui-icon-spread-left"></i>#}
       </li>
-        <li class="layui-nav-item layui-hide-xs" style="display: inline-block;padding-right: 10px">
-            <div class="layui-input-group">
-                <label>
-                    <input type="text" placeholder="搜索......" class="layui-input" lay-options="{split:true}" id="searchInput">
-                </label>
-                <div class=" layui-input-suffix" style="cursor: pointer;background-color: #23292e"><!--class="layui-input-split"-->
-                    <i class="layui-icon layui-icon-search" style="font-size: 15px;color: #fafafa" lay-affix="search" id="searchIcon"></i>
-              </div>
-            </div>
-        </li>
         <li class="layui-nav-item layui-hide-xs" style="display: inline-block;"><a href="/ServerChart">首页</a></li>
     </ul>
 
@@ -43,6 +32,19 @@
           <dd><a href="javascript:">Sign out</a></dd>
         </dl>
       </li>
+        <!--右侧菜单-->
+        <li class="layui-nav-item" lay-header-event="menuRight" lay-unselect>
+            <a href="javascript:;">
+{#                <i class="layui-icon layui-icon-more-vertical"></i>#}
+                <button class="layui-btn" id="openMenu" >Menu</button>
+            </a>
+        </li>
+        <div id="menu" class="layui-col-md3 layui-hide-xs"  style="display: none;">
+            <div id="licenseData" data-license="{{ unique_license_json }}"></div>
+            <h2>选择待展示的许可公司</h2>
+            <ul class="layui-form" id="licensezlist"></ul>
+        </div>
+        <div id="chartsContainer" class="layui-col-md9"></div>
     </ul>
   </div>
   <div class="layui-side " style="background-color: #23292e">
@@ -60,12 +62,10 @@
       </ul>
     </div>
   </div>
-
-    <div class="layui-body layui-fluid layui-col-md10"></div>
+  <div class="layui-body layui-fluid layui-col-md10">
     <!-- 内容主体区域 -->
     <div style="background-color: #e2e2e2 ;padding-top: 70px ">
       <div class="layui-card layui-panel" style="background-color: #eeeeee">
-
         <div class="layui-panel">
           <div style="padding: 32px;">
               <p>系统: {{ info.name }}</p><br>
@@ -176,38 +176,39 @@
         </div>
         <br>
         <div><a class="layui-btn layui-btn-xs">磁盘信息</a>
-        <table class="layui-table" lay-even>
-            <colgroup>
-            <col class='layui-table-col-set'>
-            <col class='layui-table-col-set'>
-            <col class='layui-table-col-set'>
-            <col class='layui-table-col-set'>
-            <col class='layui-table-col-set'>
-          </colgroup>
-          <thead>
-            <tr>
-              <th>挂载点</th>
-              <th>磁盘总空间</th>
-                <th>已使用</th>
-                <th>可用</th>
-                <th>已使用%</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{{ info.disk_mount_point}}</td>
-              <td>{{ info.disk_total}}</td>
-              <td>{{ info.disk_used}}</td>
-              <td>{{ info.disk_free }}</td>
-              <td><div class="layui-progress" lay-showpercent="true">
-                    <div class="layui-progress-bar" lay-percent="{{ info.disk_percent}}%"></div>
-                  </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+            <table class="layui-table" lay-even>
+                <colgroup>
+                <col class='layui-table-col-set'>
+                <col class='layui-table-col-set'>
+                <col class='layui-table-col-set'>
+                <col class='layui-table-col-set'>
+                <col class='layui-table-col-set'>
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>挂载点</th>
+                  <th>磁盘总空间</th>
+                    <th>已使用</th>
+                    <th>可用</th>
+                    <th>已使用%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{ info.disk_mount_point}}</td>
+                  <td>{{ info.disk_total}}</td>
+                  <td>{{ info.disk_used}}</td>
+                  <td>{{ info.disk_free }}</td>
+                  <td><div class="layui-progress" lay-showpercent="true">
+                        <div class="layui-progress-bar" lay-percent="{{ info.disk_percent}}%"></div>
+                      </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+        </div>
+        <br><br>
       </div>
-      <br><br>
     </div>
   </div>
 </div>
