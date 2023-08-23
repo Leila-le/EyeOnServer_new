@@ -20,7 +20,7 @@ import requests
 #
 
 
-folder_path = '/home/leila/djangoProject/EyeOnServer/datas'
+folder_path = '/home/leila/djangoProject/EyeOnServer/datas/unread'
 file_list = []
 files_path = []
 while True:

@@ -1,7 +1,9 @@
 from django.contrib.auth.views import LoginView
-from django.shortcuts import render
+from django.http import HttpResponseBadRequest
+from django.shortcuts import render, redirect
 from .data_process import *
 from .chart import Chart
+from django.contrib import messages
 
 
 # Create your views here.
@@ -33,53 +35,67 @@ def server(request):
 
 def get_unique_license():
     unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
+    unique_name = SeverInfo.objects.values_list('name', flat=True).distinct()
     unique_license_list = list(unique_license)
     unique_license_json = json.dumps(unique_license_list)
-    return unique_license, unique_license_json
+    return unique_license, unique_license_json, unique_name
 
 
-def get_draw_line(unique_license):
+def get_draw_line(unique_license, unique_name):
     data_lines = []
     disk_percent_list = []
     for name in unique_license:
-        x_time = []
-        y_cpu = []
-        y_memory = []
-        server_info_list = SeverInfo.objects.filter(license_name=name).order_by('time')
-        disk_percent = server_info_list.values('disk_percent').last()
-        for server_info in server_info_list:
-            x_time.append(server_info.time)
-            y_cpu.append(server_info.cpu_percent)
-            y_memory.append(server_info.memory_percent)
-        chart = Chart()
-        value_disk = disk_percent.get("disk_percent")
-        data_line = chart.lines_chart(f'{name}', f'CPU_Usage_{name}', x_time, y_cpu, y_memory, value_disk)
-        data_lines.append(data_line)
-        disk_percent_list.append(value_disk)
+        for name01 in unique_name:
+            if SeverInfo.objects.filter(license_name=name, name=name01).exists():
+
+                x_time = []
+                y_cpu = []
+                y_memory = []
+                server_info_list = SeverInfo.objects.filter(license_name=name).order_by('time')
+                disk_percent = server_info_list.values('disk_percent').last()
+                for server_info in server_info_list:
+                    x_time.append(server_info.time)
+                    y_cpu.append(server_info.cpu_percent)
+                    y_memory.append(server_info.memory_percent)
+                chart = Chart()
+                value_disk = disk_percent.get("disk_percent")
+                data_line = chart.lines_chart(f'{name}_{name01}', f'CPU_Usage_{name}_{name01}', x_time, y_cpu, y_memory, value_disk)
+                data_lines.append(data_line)
+                disk_percent_list.append(value_disk)
     reversed_list = disk_percent_list[::-1]
     return data_lines, reversed_list
 
 
 # CPU和内存使用率折线图
 def draw_lines(request):
-    unique_license, unique_license_json = get_unique_license()
+    unique_license, unique_license_json, unique_name = get_unique_license()
     # 获取模型对象列表并陈列
-    data_lines, reversed_list = get_draw_line(unique_license)
+    data_lines, reversed_list = get_draw_line(unique_license, unique_name)
 
     return render(request, "ServerChart.html",
                   {"data_lines": data_lines, "disk_percent": reversed_list, "unique_license_json": unique_license_json})
 
 
-def select_draw_line(request):
-    if request.method == 'POST':
-        license_name = request.POST.get('license_name')
-        print('license_name', license_name)
-        data_lines, reversed_list = get_draw_line(license_name)
-        return render(request, "select.html", {"data_lines": data_lines, "disk_percent": reversed_list})
+def search(request):
+    if request.method == 'GET':
+        search_list=[]
+        search_value = request.GET.get('keywords', "").strip()
+        # print('search_value', search_value)
+        search_list.append(search_value)
+        _, unique_license_json, search_name = get_unique_license()
+        result = SeverInfo.objects.filter(license_name=search_value).exists()
+        if result:
+            data_lines, reversed_list = get_draw_line(search_list, search_name)
+            return render(request, "ServerChart.html", {"data_lines": data_lines, "disk_percent": reversed_list, "unique_license_json":unique_license_json})
+        # return render(request, "ServerChart.html", {"result": result, "unique_license_json": unique_license_json})
+    # 处理非GET请求的情况，例如POST请求
+    # return HttpResponseBadRequest("Invalid request method")
 
 
 def home(request):
-    _, unique_license_json = get_unique_license()
+    _, unique_license_json, _ = get_unique_license()
+    infos = SeverInfo.objects.all().order_by('-time')
+    context = {'infos': infos}
     return render(request, "base.html", locals())
 
 

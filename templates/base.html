@@ -10,8 +10,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="{% static 'css/layui.css' %}" rel="stylesheet">
 </head>
-<body>
-<div class="layui-layout layui-layout-admin" style="background-color: #9f9f9f">
+<body >
+<div class="layui-layout layui-layout-admin" >
   <div class="layui-header" >
     <div class="layui-logo layui-hide-xs layui-bg-black layui-col-md3">硬件资源监控</div>
     <!-- 头部区域（可配合layui 已有的水平导航） -->
@@ -24,7 +24,7 @@
                 <input type="text" placeholder="搜索......" class="layui-input" lay-options="{split:true}" id="searchInput">
             </label>
             <div class=" layui-input-suffix" style="cursor: pointer;background-color: #23292e"><!--class="layui-input-split"-->
-                <i class="layui-icon layui-icon-search" style="font-size: 15px;color: #fafafa" lay-affix="search" id="searchIcon"></i>
+                <i class="layui-icon layui-icon-search" style="font-size: 15px;color: #fafafa" lay-affix="search" id="searchIcon" lay-event="search"></i>
             </div>
          </div>
       </li>
@@ -74,15 +74,15 @@
     </div>
   </div>
 
-  <div class="layui-body layui-fluid layui-col-md10" >
+  <div class="layui-body layui-fluid layui-col-md10 layui-col-space16" >
     <!-- 内容主体区域 -->
-    <div style="background-color: #e2e2e2 ;padding-top: 70px ">
       <div class="layui-card layui-panel" style="background-color: #eeeeee">
         {% block Server_list %}{% endblock %}
         {% block ServerChart %}{% endblock %}
+        {% block SearchChart %}{% endblock %}
+      {% block System %}{% endblock %}
       </div>
       <br><br>
-    </div>
   </div>
 </div>
 <div class="layui-footer" >
@@ -94,6 +94,7 @@
 <script src="{% static 'js/echarts/echarts.min.js' %}"></script>
 <script>
     //JS
+    const baseUrl = 'http://192.168.199.42:8000';
     layui.use(['element', 'layer', 'util', 'form'], function(){
       const element = layui.element;
       let layer = layui.layer;
@@ -143,45 +144,48 @@
 
         // 添加生成图表的按钮点击事件
         const generateBtns = document.querySelectorAll('.generate-btn');
-        console.log(11);
         generateBtns.forEach(btn =>{
             btn.addEventListener('click',()=>{
                 console.log('按钮被点击了');
                 const selectedLicenses = Array.from(this.parentNode.querySelectorAll('input[name="licenses"]:checked')).map(checkbox=>checkbox.getAttribute('title'));
                 generateFrames(selectedLicenses);
-                console.log(12);
             })
         })
-        console.log(13);
-        function generateFrames(selectedLicenses) {
-            selectedLicenses.forEach(function (license){
-                console.log(14);
-                $.ajax({
-                    url:'{% url "select" %}',
-                    type:'POST',
-                    data:{selectedLicenses:license},
-                    success:function (data){
-                        window.location.href=this.url
-                    },
-                    error:function (xhr, status, error){
-                    console.error("Error:", error);
-                }
-                })
-            })
-            console.log(15);
-        }
-        console.log(16);
       // 输入框点缀事件 - 搜索示例
       document.getElementById('searchIcon').addEventListener('click', function() {
           let searchInput = document.getElementById('searchInput');
           let searchValue = searchInput.value;
-
           if (searchValue.trim() === '') {
             layui.layer.msg('请输入搜索内容');
             return;
           }
-          // 模拟搜索跳转
-          location.href = '?keywords=' + searchValue;
+          console.log(searchValue);
+          $.ajax({
+              url:'/search/',
+              type:'GET',
+              data:{keywords:searchValue},
+              {#dataType:'json',#}
+              success:function (response){
+                  displaySearchResults(response);
+              },
+              error:function (){
+                  layer.msg('搜索请求失败');
+              }
+          });
+          function displaySearchResults(results){
+              let searchResultsDiv = $('#searchResults');
+              searchResultsDiv.empty();
+              if(results.length===0){
+                  searchResultsDiv.text('未找到匹配的结果');
+              }else{
+                  for(let i=0;i<results.length;i++){
+                      let resultItem=$('<div>').text(results[i]);
+                      searchResultsDiv.append(resultItem);
+                  }
+                  // 搜索跳转
+                  window.location.href = baseUrl+'/search/?keywords=' + encodeURIComponent(searchValue);
+              }
+          }
       });
     });
     layui.use(function(){
@@ -193,8 +197,8 @@
         done: function(page, next){ // 执行下一页的回调
           // 模拟数据插入
           setTimeout(function(){
-            var lis = [];
-            for(var i = 0; i < 8; i++){
+            let lis = [];
+            for(let i = 0; i < 8; i++){
               lis.push('<li>'+ ( (page-1)*8 + i + 1 ) +'</li>')
             }
 
