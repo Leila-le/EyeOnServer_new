@@ -32,6 +32,9 @@
     </ul>
 
     <ul class="layui-nav layui-layout-right">
+        <li class="layui-nav-item">
+            <i id="change-theme" class="layui-icon layui-icon-light" style="font-size: 20px"></i>
+        </li>
       <li class="layui-nav-item layui-hide layui-show-sm-inline-block">
         <a href="javascript:">
           <img src="//unpkg.com/outeres@0.0.10/img/layui/icon-v2.png" class="layui-nav-img">
@@ -89,7 +92,17 @@
     <!-- 底部固定区域 -->
     底部固定区域
 </div>
-
+<div class="layui-dropdown layui-border-box layui-panel layui-anim layui-anim-downbit" lay-id="change-theme" style="left: 1036px; top: 1433.5px;"><ul class="layui-menu layui-dropdown-menu"><li><div class="layui-menu-body-title"><span style="display: flex;">
+      <i class="layui-icon layui-icon-moon" style="margin-right: 8px"></i>
+      深色模式
+    </span></div></li><li><div class="layui-menu-body-title"><span style="display: flex;">
+      <i class="layui-icon layui-icon-light" style="margin-right: 8px"></i>
+      浅色模式
+    </span></div></li><li><div class="layui-menu-body-title"><span style="display: flex;">
+      <i class="layui-icon layui-icon-console" style="margin-right: 8px"></i>
+      跟随系统
+    </span></div></li></ul>
+</div>
 <script src="{% static "/js/layui.js" %}"></script>
 <script src="{% static 'js/echarts/echarts.min.js' %}"></script>
 <script>
