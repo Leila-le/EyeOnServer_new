@@ -10,7 +10,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="{% static 'css/layui.css' %}" rel="stylesheet">
 </head>
-<body >
+<body style="background-color: #eeeeee">
 <div class="layui-layout layui-layout-admin" >
   <div class="layui-header" >
     <div class="layui-logo layui-hide-xs layui-bg-black layui-col-md3">硬件资源监控</div>
@@ -58,7 +58,7 @@
         <div id="chartsContainer" class="layui-col-md9"></div>
     </ul>
   </div>
-  <div class="layui-side " style="background-color: #23292e">
+  <div class="layui-side layui-side-bg-black" style="background-color: #23292e">
     <div class="layui-side-scroll ">
       <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
       <ul class="layui-nav layui-nav-tree" lay-filter="test">
@@ -74,9 +74,9 @@
     </div>
   </div>
 
-  <div class="layui-body layui-fluid layui-col-md10 layui-col-space16" >
+  <div class="layui-body layui-fluid " >
     <!-- 内容主体区域 -->
-      <div class="layui-card layui-panel" style="background-color: #eeeeee">
+      <div class="layui-card layui-panel" style="background-color: #eeeeee; padding:16px">
         {% block Server_list %}{% endblock %}
         {% block ServerChart %}{% endblock %}
         {% block SearchChart %}{% endblock %}
