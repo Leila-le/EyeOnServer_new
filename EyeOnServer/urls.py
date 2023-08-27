@@ -20,15 +20,22 @@ from eye_on_server.views import views, chart, data_process
 from eye_on_server.views.views import CustomLoginView
 
 urlpatterns = [
-    # path('', include(eye_on_server.urls)),
-    path('admin/login/', CustomLoginView.as_view(), name='admin_login'),
+    # 后台管理员路由
+    path('login', views.login, name="myadmin_login"),
+    path('dologin', views.dologin, name="myadmin_dologin"),
+    path('logout', views.logout, name="myadmin_logout"),
+    path('verify', views.verify, name="myadmin_verify"), #验证码
+    # path('admin/login/', CustomLoginView.as_view(), name='admin_login'),
     path('admin/', admin.site.urls),
 
     path('data/', data_process.data_to_model, name='data'),
     path('base/', views.home, name='base'),
     path('basic_line_charts/', chart.Line, name='line'),
-    path('ServerList/', views.server, name='ServerList'),
+
     path('ServerChart/', views.draw_lines, name='ServerChart'),
+
+    path('ServerList/', views.server, name='ServerList'),
     path('system/', views.systems, name='system'),
-    path('search/', views.search, name='search')
+
+    path('admin/search/', views.search, name='search')
 ]

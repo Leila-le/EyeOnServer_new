@@ -6,3 +6,4 @@ from management.commands.print_urls import Command as PrintUrlsCommand
 from .models import SeverInfo
 # Register your models here.
 admin.site.register(SeverInfo)
+# admin.site.register(User)

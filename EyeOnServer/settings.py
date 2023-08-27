@@ -46,6 +46,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'eye_on_server.myadmin.servermiddleware.ServerMiddleware',
 ]
 
 ROOT_URLCONF = 'EyeOnServer.urls'
