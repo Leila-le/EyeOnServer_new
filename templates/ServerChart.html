@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block ServerChart %}
-<div class="layui-bg-grey" style="padding: 16px;">
+<div class="layui-bg-grey" >
   <div class="layui-row layui-col-space15" >
     {% for data_line in data_lines %}
-    <div class="layui-col-md4">
+    <div class="layui-col-md4" style="padding: 32px;">
       <div class="layui-card">
           <a >磁盘当前使用率</a>
           <div class="layui-progress llayui-col-md4 layui-card-header" lay-showpercent="true" style="width: auto;background-color: white">

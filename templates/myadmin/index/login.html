@@ -1,28 +1,62 @@
-{% load static %}
-
 <!DOCTYPE html>
-<html lang="zh">
+<html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>登录</title>
+  <title>Login</title>
   <!-- 请勿在项目正式环境中引用该 layui.css 地址 -->
-  <link href="{% static 'css/layui.css' %}" rel="stylesheet">
+  <link href="//unpkg.com/layui@2.8.15/dist/css/layui.css" rel="stylesheet">
+  <style>
+      .demo-login-container{
+        width: 320px;
+          /* 将左右外边距设置为 "auto"，使其水平居中 */
+          /* 可根据需要调整垂直方向的外边距 */
+          margin: 100px auto 0;
+       }
+      .captcha-container{
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+    #canvas {
+        position: absolute;
+        {#margin: 10px;#}
+        left: 80%;
+        top:0;
+        float: right;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .btn {
+        width: 100px;
+        height: 40px;
+        background: #f1f1f1;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin: 20px auto 0;
+        display: block;
+        font-size: 1.2rem;
+        color: #e22e1c;
+        cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 <style>
 .demo-login-container{width: 320px; margin: 21px auto 0;}
-.demo-login-other .layui-icon{position: relative; display: inline-block; margin: 0 2px; top: 2px; font-size: 26px;}
 </style>
-<form class="layui-form" action="{% url 'myadmin_dologin' %}" method="post">
-    {% csrf_token %}
+<form class="layui-form">
   <div class="demo-login-container">
     <div class="layui-form-item">
       <div class="layui-input-wrap">
         <div class="layui-input-prefix">
           <i class="layui-icon layui-icon-username"></i>
         </div>
-        <input type="text" name="username" value="" lay-verify="required" placeholder="用户名" lay-reqtext="请填写用户名" autocomplete="off" class="layui-input" lay-affix="clear">
+          <label>
+              <input type="text" name="username" value="" lay-verify="required" placeholder="用户名" lay-reqtext="请填写用户名" autocomplete="off" class="layui-input" lay-affix="clear">
+          </label>
       </div>
     </div>
     <div class="layui-form-item">
@@ -30,63 +64,141 @@
         <div class="layui-input-prefix">
           <i class="layui-icon layui-icon-password"></i>
         </div>
-        <input type="password" name="password" value="" lay-verify="required" placeholder="密   码" lay-reqtext="请填写密码" autocomplete="off" class="layui-input" lay-affix="eye">
+          <label>
+              <input type="password" name="password" value="" lay-verify="required" placeholder="密   码" lay-reqtext="请填写密码" autocomplete="off" class="layui-input" lay-affix="eye">
+          </label>
       </div>
     </div>
     <div class="layui-form-item">
       <div class="layui-row">
-        <div class="layui-col-xs7">
+
           <div class="layui-input-wrap">
             <div class="layui-input-prefix">
               <i class="layui-icon layui-icon-vercode"></i>
             </div>
-            <input type="text" name="captcha" value="" lay-verify="required" placeholder="验证码" lay-reqtext="请填写验证码" autocomplete="off" class="layui-input" lay-affix="clear">
+              <div class="captcha-container">
+                  <label>
+                      <input type="text" name="captcha" value="" lay-verify="required" placeholder="请输入验证码(不区分大小写)" class="layui-input" lay-reqtext="请填写验证码" autocomplete="off"  lay-affix="clear" id="captcha-input">
+                      <canvas id="canvas" width="100" height="36"></canvas>
+                  </label>
+
+              </div>
           </div>
-        </div>
+
         <div class="layui-col-xs5">
-          <div style="margin-left: 10px;">
-            <img src="https://www.oschina.net/action/user/captcha" onclick="this.src='https://www.oschina.net/action/user/captcha?t='+ new Date().getTime();">
-          </div>
+          <div style="margin-left: 10px;"></div>
         </div>
       </div>
     </div>
     <div class="layui-form-item">
-      <input type="checkbox" name="remember" lay-skin="primary" title="记住密码">
-      <a href="#forget" style="float: right; margin-top: 7px;">忘记密码？</a>
-    </div>
-    <div class="layui-form-item">
-      <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="demo-login">登录</button>
+      <button class="layui-btn layui-btn-fluid btn" lay-submit lay-filter="demo-login">登录</button>
     </div>
     <div class="layui-form-item demo-login-other">
-      <label>社交账号登录</label>
-      <span style="padding: 0 21px 0 6px;">
-        <a href="javascript:;"><i class="layui-icon layui-icon-login-qq" style="color: #3492ed;"></i></a>
-        <a href="javascript:;"><i class="layui-icon layui-icon-login-wechat" style="color: #4daf29;"></i></a>
-        <a href="javascript:;"><i class="layui-icon layui-icon-login-weibo" style="color: #cf1900;"></i></a>
-      </span>
-      或 <a href="#reg">注册帐号</a>
+      <a href="#reg" >注册帐号</a>
+      <a href="#forget" style="float: right;">忘记密码？</a>
     </div>
   </div>
 </form>
 
 <!-- 请勿在项目正式环境中引用该 layui.js 地址 -->
-<script src="{% static 'js/layui.js' %}"></script>
+<script src="//unpkg.com/layui@2.8.15/dist/layui.js"></script>
+<script src="https://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
 <script>
-{#layui.use(function(){#}
-{#  var form = layui.form;#}
-{#  var layer = layui.layer;#}
-{#  // 提交事件#}
-{#  form.on('submit(demo-login)', function(data){#}
-{#    var field = data.field; // 获取表单字段值#}
-{#    // 显示填写结果，仅作演示用#}
-    {#layer.alert(JSON.stringify(field), {#}
-    {#  title: '当前填写的字段值'#}
-    {# });#}
-{#    // 此处可执行 Ajax 等操作#}
-{#    // …#}
-{#    return true; // 阻止默认 form 跳转#}
-{#  });#}
-{# });#}
+layui.use(function(){
+
+  let form = layui.form;
+  let layer = layui.layer;
+  let show_num = [];
+  draw(show_num);
+  {#var $ = layer.$#}
+  // 提交事件
+
+  form.on('submit(demo-login)', function(data){
+    let field = data.field; // 获取表单字段值
+    let username = field.username;
+    let password = field.password;
+    let captcha = field.captcha;
+    // 进行用户名和密码的验证逻辑
+    if (username === '') {
+        layer.alert('请输入用户名！');
+        return false;
+    }
+
+    if (password === '') {
+        layer.alert('请输入密码！');
+        return false;
+    }
+
+    // 进行验证码的验证逻辑
+    var val = $("#captcha-input").val().toLowerCase();
+    var num = show_num.join("");
+    if (val === '') {
+        layer.alert('请输入验证码！');
+        return false;
+    } else if (val !== num) {
+        layer.alert('验证码错误！请重新输入！');
+        return false;
+    }
+    // 执行跳转页面的操作
+    layer.alert('提交成功！');
+  // 执行跳转操作
+    return false; // 阻止默认 form 跳转
+  });
+});
+
+    function draw(show_num) {
+        var canvas_width=$('#canvas').width();
+        var canvas_height=$('#canvas').height();
+        var canvas = document.getElementById("canvas");//获取到canvas的对象，演员
+        var context = canvas.getContext("2d");//获取到canvas画图的环境，演员表演的舞台
+        canvas.width = canvas_width;
+        canvas.height = canvas_height;
+        var sCode = "A,B,C,E,F,G,H,J,K,L,M,N,P,Q,R,S,T,W,X,Y,Z,1,2,3,4,5,6,7,8,9,0";
+        var aCode = sCode.split(",");
+        var aLength = aCode.length;//获取到数组的长度
+
+        for (var i = 0; i <= 3; i++) {
+            var j = Math.floor(Math.random() * aLength);//获取到随机的索引值
+            var deg = Math.random() * 30 * Math.PI / 180;//产生0~30之间的随机弧度
+            var txt = aCode[j];//得到随机的一个内容
+            show_num[i] = txt.toLowerCase();
+            var x = 10 + i * 20;//文字在canvas上的x坐标
+            var y = 20 + Math.random() * 8;//文字在canvas上的y坐标
+            context.font = "bold 23px 微软雅黑";
+
+            context.translate(x, y);
+            context.rotate(deg);
+
+            context.fillStyle = randomColor();
+            context.fillText(txt, 0, 0);
+
+            context.rotate(-deg);
+            context.translate(-x, -y);
+        }
+        for (var i = 0; i <= 5; i++) { //验证码上显示线条
+            context.strokeStyle = randomColor();
+            context.beginPath();
+            context.moveTo(Math.random() * canvas_width, Math.random() * canvas_height);
+            context.lineTo(Math.random() * canvas_width, Math.random() * canvas_height);
+            context.stroke();
+        }
+        for (var i = 0; i <= 30; i++) { //验证码上显示小点
+            context.strokeStyle = randomColor();
+            context.beginPath();
+            var x = Math.random() * canvas_width;
+            var y = Math.random() * canvas_height;
+            context.moveTo(x, y);
+            context.lineTo(x + 1, y + 1);
+            context.stroke();
+        }
+    }
+
+    function randomColor() {//得到随机的颜色值
+        var r = Math.floor(Math.random() * 256);
+        var g = Math.floor(Math.random() * 256);
+        var b = Math.floor(Math.random() * 256);
+        return "rgb(" + r + "," + g + "," + b + ")";
+    }
 </script>
 </body>
 </html>
