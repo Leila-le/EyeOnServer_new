@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'eye_on_server.apps.EyeOnServerConfig',
+    'myadmin.apps.MyadminConfig',
 ]
 
 MIDDLEWARE = [
