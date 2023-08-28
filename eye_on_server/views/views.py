@@ -4,6 +4,7 @@ from django.shortcuts import render
 from .data_process import *
 from .chart import Chart
 
+
 # Create your views here.
 
 def server(request):
@@ -113,8 +114,6 @@ def systems(request):
         context = {'info': info}
         return render(request, "system.html", context=context)
 
-
 # # 会员登录表单
 # def login(request):
 #     return render(request, 'myadmin/index/login.html')
-

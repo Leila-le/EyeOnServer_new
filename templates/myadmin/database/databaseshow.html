@@ -1,10 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "myadmin/base.html" %}
 
-</body>
-</html>
+{% block main_body %}
+<table class="layui-table" lay-data="{height:315, url:'/static/2.8/json/table/user.json', page:true}" id="ID-table-demo-init">
+  <thead>
+    <tr>
+      <th lay-data="{field:'name', width:80, sort: true}">系统</th>
+      <th lay-data="{field:'license_name', width:80}">授权公司/名称</th>
+      <th lay-data="{field:'memory', width:80, sort: true}">内存</th>
+      <th lay-data="{field:'cpu'}">CPU</th>
+      <th lay-data="{field:'disk'}">磁盘</th>
+      <th lay-data="{field:'ip'}">IP</th>
+      <th lay-data="{field:'joinTime', sort: true}">更新时间</th>
+      <th lay-data="{field:'remark', sort: true}">备注</th>
+      <th lay-data="{field:'right'}">操作</th>
+    </tr>
+  </thead>
+</table>
+
+<!-- 请勿在项目正式环境中引用该 layui.js 地址 -->
+<script src="//unpkg.com/layui@2.8.15/dist/layui.js"></script>
+{% endblock %}
