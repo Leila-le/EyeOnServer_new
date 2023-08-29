@@ -1,15 +1,11 @@
 {% extends "myadmin/base.html" %}
-
 {% block main_body %}
     <style>
-        .box-title-with-form {
-        overflow: auto;
+        .layui-flex-container{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
-        .box-title {
-            float: left;
-        }
-
         form {
             float: right;
             margin-top: 7px;
@@ -22,11 +18,21 @@
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <blockquote class="layui-elem-quote layui-text">
-            账号管理
-        <span class="layui-breadcrumb" lay-separator=">" >
-          <a href="">首页</a>
-          <a href="" class="active">账号信息管理</a>
-        </span>
+            <div class="layui-flex-container">
+                <div>账号管理
+                    <span class="layui-breadcrumb" lay-separator=">" >
+                      <a href="">首页</a>
+                      <a href="" class="active">账号信息管理</a>
+                    </span>
+                </div>
+
+                <div class="layui-input-group">
+                    <input type="text" placeholder="搜索......" class="layui-input" lay-options="{split:true}" id="searchInput">
+                    <div class=" layui-input-suffix" style="cursor: pointer;background-color: #23292e"><!--class="layui-input-split"-->
+                        <i class="layui-icon layui-icon-search" style="font-size: 15px;color: #fafafa" lay-affix="search" id="searchIcon" lay-event="search"></i>
+                    </div>
+                </div>
+            </div>
         </blockquote>
     </section>
 
@@ -36,17 +42,8 @@
         <div class="layui-col-md12">
           <div class="layui-card">
             <div class="layui-card-header">
-                <h4 class="box-title"><i class="fa fa-calendar"></i> 员工账号信息表</h4>
-                <form action="{% url 'myadmin_user_index' 1 %}" method="get">
-                <div class="layui-input-group">
-                    <label>
-                        <input type="text" placeholder="搜索......" class="layui-input" lay-options="{split:true}" id="searchInput">
-                    </label>
-                    <div class=" layui-input-suffix" style="cursor: pointer;background-color: #23292e"><!--class="layui-input-split"-->
-                        <i class="layui-icon layui-icon-search" style="font-size: 15px;color: #fafafa" lay-affix="search" id="searchIcon" lay-event="search"></i>
-                    </div>
-                </div>
-                </form>
+                <div><h4 >员工账号信息表</h4></div>
+
             </div>
             <!-- /.card-header -->
             <div class="layui-card-body">
@@ -71,22 +68,19 @@
                     {% elif vo.status == 2 %}
                       <span style="color:red">禁停</span>
                     {% elif vo.status == 6 %}
-                      <span style="color:red">管理员</span>
+                      <span style="color:#ffb800">管理员</span>
                     {% elif vo.status == 9 %}
-                      <span style="color:red">已删除</span>
+                      <span style="color:#c2c2c2">已删除</span>
                     {% else %}
-                      <span style="color:red">未知状态</span>
+                      <span style="color:#16baaa">未知状态</span>
                     {% endif %}
                   </td>
-                  <td width="15%">{{ vo.create_at|date:'Y-m-d H:i:s' }}</td>
-                  <td width="15%">{{ vo.update_at|date:'Y-m-d H:i:s' }}</td>
-                  <td width="22%">
-                    <a href="{% url 'myadmin_user_edit' vo.id %}" class=" btn-success layui-btn layui-btn-xs">
-                      <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> 编辑</a>
-                    <button type="button" onclick="doDelete('{% url 'myadmin_user_del' vo.id %}')" class="layui-btn btn-danger layui-btn-xs">
-                      <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> 删除</button>
-                    <a type="button" class="layui-btn btn-warning layui-btn-xs">
-                      <span class="glyphicon glyphicon-search" aria-hidden="true"></span> 分配</a>
+                  <td >{{ vo.create_at|date:'Y-m-d H:i:s' }}</td>
+                  <td >{{ vo.update_at|date:'Y-m-d H:i:s' }}</td>
+                  <td >
+                    <a href="{% url 'myadmin_user_edit' vo.id %}" class=" btn-success layui-btn layui-btn-sm">编辑</a>
+                    <button type="button" class="layui-btn layui-btn-sm layui-btn-normal delete-button" lay-on="test-confirm"  data-url="{% url 'myadmin_user_del' uid=vo.id %}">删除</button>
+                    <a type="button" class="layui-btn layui-btn-warm layui-btn-sm">分配</a>
                   </td>
                 </tr>
                 {% endfor %}
@@ -98,7 +92,7 @@
                     <div class="layui-row layui-col-space15">
                         <div class="layui-col-xs8">
                             <div class="layui-box">
-                                <a role="button" href="{% url 'myadmin_user_add' %}" class="btn-primary layui-btn layui-btn-xs">
+                                <a role="button" href="{% url 'myadmin_user_add' %}" class="btn-primary layui-btn layui-btn-ms">
                                     <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 添加账户
                                 </a>
                             </div>
@@ -113,9 +107,15 @@
                                         <a href="{% url 'myadmin_user_index' p %}">{{p}}</a>
                                     </li>
                                 {% endfor %}
-                                <li class="layui-laypage-next">
+                                {% if pIndex %}
+                                  <li class="layui-laypage-next">
                                     <a href="{% url 'myadmin_user_index' pIndex|add:1 %}">&raquo;</a>
-                                </li>
+                                  </li>
+                                {% else %}
+                                  <li class="layui-laypage-next">
+                                    <a href="{% url 'myadmin_user_index' 1 %}">&raquo;</a>
+                                  </li>
+                                {% endif %}
                             </ul>
                         </div>
                     </div>
@@ -125,7 +125,70 @@
           <!-- /.box -->
         </div>
       </div>
-
     </section>
     <!-- /.content -->
+    <script src="//unpkg.com/layui@2.8.15/dist/layui.js"></script>
+<script>
+  layui.use(function(){
+      let layer = layui.layer;
+      let util = layui.util;
+      const deleteButtons = document.querySelectorAll('.delete-button');
+      deleteButtons.forEach(button=>{
+          button.addEventListener('click', function(){
+              //获取所在行的标识符
+              const url = this.getAttribute('data-url')// 获取URL参数
+              // 确认弹窗
+              layer.confirm('确定删除？', {icon: 3}, function(){
+                // 点击确定后执行删除操作
+                doDelete(url); // 调用删除函数并传递URL参数
+                layer.msg('已删除', {icon: 1});
+              }, function(){
+                // 取消删除操作
+                layer.msg('已取消');
+              });
+          })
+      })
+      function doDelete(url){
+          //执行删除操作
+          window.location.href = url;//重定向到指定URL,触发删除操作
+      }
+
+      // 输入框点缀事件 - 搜索示例
+      document.getElementById('searchIcon').addEventListener('click', function() {
+          let searchInput = document.getElementById('searchInput');
+          let searchValue = searchInput.value;
+          if (searchValue.trim() === '') {
+            layui.layer.msg('请输入搜索内容');
+            return;
+          }
+          console.log(searchValue);
+          $.ajax({
+              url:'/search/',
+              type:'GET',
+              data:{keywords:searchValue},
+              {#dataType:'json',#}
+              success:function (response){
+                  displaySearchResults(response);
+              },
+              error:function (){
+                  layer.msg('搜索请求失败');
+              }
+          });
+          function displaySearchResults(results){
+              let searchResultsDiv = $('#searchResults');
+              searchResultsDiv.empty();
+              if(results.length===0){
+                  searchResultsDiv.text('未找到匹配的结果');
+              }else{
+                  for(let i=0;i<results.length;i++){
+                      let resultItem=$('<div>').text(results[i]);
+                      searchResultsDiv.append(resultItem);
+                  }
+                  // 搜索跳转
+                  window.location.href = baseUrl+'/search/?keywords=' + encodeURIComponent(searchValue);
+              }
+          }
+      });
+  });
+</script>
 {% endblock %}

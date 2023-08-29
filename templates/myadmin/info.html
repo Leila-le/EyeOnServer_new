@@ -2,15 +2,17 @@
 
 {% block main_body %}
     <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <h4>
-        信息提示:
-      </h4>
-    </section>
+    <blockquote class="layui-elem-quote layui-text">
+    信息提示:
+    </blockquote>
 
-    <div class="pad margin no-print">
-      <div class="callout callout-info" style="margin-bottom: 0!important;padding-left: 50px">
-        <h3><i class="fa fa-exclamation-triangle"></i>  &nbsp; {{ info }}</h3>
+
+    <div class="layui-panel">
+      <div style="padding: 32px;">
+          <h3>
+              {{ info }}
+          </h3>
       </div>
     </div>
+
 {% endblock %}

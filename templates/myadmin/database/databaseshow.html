@@ -1,7 +1,17 @@
 {% extends "myadmin/base.html" %}
 
 {% block main_body %}
-<table class="layui-table" lay-data="{height:315, url:'/static/2.8/json/table/user.json', page:true}" id="ID-table-demo-init">
+<section class="content-header">
+    <blockquote class="layui-elem-quote layui-text">
+        数据库管理
+    <span class="layui-breadcrumb" lay-separator=">" >
+      <a href="">首页</a>
+      <a href="" class="active">数据库管理</a>
+    </span>
+    </blockquote>
+</section>
+<section class="content container-fluid">
+<table class="layui-table" lay-data="{height:315, url:'/static/merger.json', page:true}" id="ID-table-demo-init">
   <thead>
     <tr>
       <th lay-data="{field:'name', width:80, sort: true}">系统</th>
@@ -16,7 +26,7 @@
     </tr>
   </thead>
 </table>
-
+</section>
 <!-- 请勿在项目正式环境中引用该 layui.js 地址 -->
 <script src="//unpkg.com/layui@2.8.15/dist/layui.js"></script>
 {% endblock %}

@@ -1,3 +1,5 @@
+from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import JsonResponse
@@ -7,6 +9,8 @@ from datetime import datetime
 import random
 
 from myadmin.models import User
+
+from eye_on_server.views.tableShow import data_to_json
 
 
 def index(request, pIndex=1):
@@ -46,38 +50,49 @@ def index(request, pIndex=1):
     return render(request, "myadmin/user/index.html", context)
 
 
+def database_show(request):
+    file_path = './static/merger.json'
+    url = 'myadmin/database/databaseshow.html'
+    return data_to_json(request, url, file_path)
+
+
 def add(request):
-    '''加载添加页面'''
+    """加载添加页面"""
     return render(request, "myadmin/user/add.html")
 
 
 def insert(request):
-    '''执行添加'''
-    try:
-        ob = User()
-        ob.username = request.POST['username']
-        ob.nickname = request.POST['nickname']
-        # 获取密码并md5
-        import hashlib
-        md5 = hashlib.md5()
-        n = random.randint(100000, 999999)
-        s = request.POST['password'] + str(n)
-        md5.update(s.encode('utf-8'))
-        ob.password_hash = md5.hexdigest()
-        ob.password_salt = n
-        ob.status = 1
-        ob.create_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        ob.update_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        ob.save()
-        context = {"info": "添加成功！"}
-    except Exception as err:
-        print(err)
-        context = {"info": "添加失败"}
-    return render(request, "myadmin/info.html", context)
+    """执行添加"""
+    if request.method == 'POST':
+        try:
+            ob = User()
+            username = request.POST['username']
+            if User.objects.filter(username=username).exists():
+                raise ValidationError('该账号已被注册')
+
+            ob.username = username
+            ob.nickname = request.POST['nickname']
+            # 获取密码并md5
+            import hashlib
+            md5 = hashlib.md5()
+            n = random.randint(100000, 999999)
+            s = request.POST['password'] + str(n)
+            md5.update(s.encode('utf-8'))
+            ob.password_hash = md5.hexdigest()
+            ob.password_salt = n
+            ob.status = 1
+            ob.create_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ob.update_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ob.save()
+            # context = {"info": "添加成功！"}
+        except ValidationError as err:
+            return JsonResponse({'success': False, 'message': str(err)})# 添加错误消息到消息队列
+        # return render(request, "myadmin/info.html", context)
+    return JsonResponse({'success': True, 'message': '添加成功！'})
 
 
 def delete(request, uid):
-    '''删除信息'''
+    """删除信息"""
     try:
         ob = User.objects.get(id=uid)
         ob.status = 9
@@ -88,8 +103,8 @@ def delete(request, uid):
         print(err)
         context = {"info": "删除失败"}
 
-    return JsonResponse(context)
-    # return render(request,"myadmin/info.html",context)
+    # return JsonResponse(context)
+    return render(request, "myadmin/info.html", context)
 
 
 def edit(request, uid):

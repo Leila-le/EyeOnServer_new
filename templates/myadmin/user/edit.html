@@ -3,13 +3,13 @@
 {% block main_body %}
     <!-- Content Header (Page header) -->
     <section class="content-header">
-      <h1>
-        账号管理
-      </h1>
-      <ol class="breadcrumb">
-        <li><a href="#"><i class="fa fa-dashboard"></i> 首页</a></li>
-        <li class="active">账号信息管理</li>
-      </ol>
+        <blockquote class="layui-elem-quote layui-text">
+            账号管理
+        <span class="layui-breadcrumb" lay-separator=">" >
+          <a href="">首页</a>
+          <a href="" class="active">账号信息管理</a>
+        </span>
+        </blockquote>
     </section>
 
     <!-- Main content -->
@@ -26,36 +26,37 @@
             <form class="form-horizontal" action="{% url 'myadmin_user_update' user.id %}" method="post">
                 {% csrf_token %}
               <div class="box-body">
-                <div class="form-group">
-                  <label for="inputEmail3" class="col-sm-2 control-label">员工账号：</label>
 
-                  <div class="col-sm-4">
-                    <input type="text" name="username" value="{{user.username}}" class="form-control" disabled readonly id="inputText1" placeholder="员工账号" />
+                <div class="layui-form-item">
+                  <div class="layui-input-wrap">
+                    <div class="layui-input-prefix">
+                      <i class="layui-icon layui-icon-username"></i>
+                    </div>
+                      <input readonly type="text" name="username" value="{{user.username}}" lay-verify="required" placeholder="账号" autocomplete="off" class="layui-input" id="reg-password" lay-affix="eye">
                   </div>
                 </div>
-                <div class="form-group">
-                  <label for="inputEmail3" class="col-sm-2 control-label">昵称：</label>
 
-                  <div class="col-sm-4">
-                    <input type="text" name="nickname" value="{{user.nickname}}" class="form-control" id="inputText2" placeholder="昵称" />
+                <div class="layui-form-item">
+                  <div class="layui-input-wrap">
+                    <div class="layui-input-prefix">
+                      <i class="layui-icon layui-icon-username"></i>
+                    </div>
+                      <input type="text" name="nickname" value="" lay-verify="required" placeholder="昵称" autocomplete="off" class="layui-input" lay-affix="clear">
                   </div>
                 </div>
-                <div class="form-group">
-                  <label for="inputEmail3"  class="col-sm-2 control-label">添加时间：</label>
 
-                  <div class="col-sm-4">
-                    {{ user.create_at|date:'Y-m-d H:i:s' }}
+                <div class="layui-form-item">
+                  <div class="layui-input-wrap">
+                      <div><label>添加时间:{{ user.create_at|date:'Y-m-d H:i:s' }}</label></div>
                   </div>
                 </div>
-                <div class="form-group">
-                  <label for="inputEmail3" class="col-sm-2 control-label">修改时间：</label>
-
-                  <div class="col-sm-4">
-                    {{ user.update_at|date:'Y-m-d H:i:s' }}
+                <div class="layui-form-item">
+                  <div class="layui-input-wrap">
+                      <div><label>上一次修改时间:{{ user.update_at|date:'Y-m-d H:i:s' }}</label></div>
                   </div>
                 </div>
-                <div class="form-group">
-                  <label class="col-sm-2 control-label">当前状态：</label>
+                <div class="layui-form-item">
+                  <label >当前状态：</label>
                   <div class="controls">
                       <label>
                           &nbsp; &nbsp;
@@ -78,8 +79,8 @@
               <!-- /.box-body -->
               <div class="box-footer">
                 <div class="col-sm-offset-2 col-sm-10">
-                  <button type="submit" class="btn btn-primary">保存</button> &nbsp;
-                  <button type="reset" class="btn btn-default">重置</button>
+                  <button type="submit" class="layui-btn btn-primary">保存</button> &nbsp;
+                  <button type="reset" class="layui-btn btn-default">重置</button>
                 <div class="col-sm-offset-2 col-sm-10">
               </div>
                 </div>

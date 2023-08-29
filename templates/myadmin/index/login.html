@@ -15,13 +15,13 @@
        }
       .captcha-container{
         position: relative;
-        display: flex;
+        display: inline-block;
         align-items: center;
       }
     #canvas {
         position: absolute;
         {#margin: 10px;#}
-        left: 80%;
+        left: 100%;
         top:0;
         float: right;
         display: inline-block;
@@ -41,22 +41,24 @@
         color: #e22e1c;
         cursor: pointer;
     }
+    .demo-login-container{width: 320px; margin: 21px auto 0;}
+
+    .layui-form-item .captcha-container,
+    .layui-form-item input[name="captcha"] {
+        width: 220px; /* 设置验证码和验证码填写框的宽度 */
+      }
   </style>
 </head>
 <body>
-<style>
-.demo-login-container{width: 320px; margin: 21px auto 0;}
-</style>
-<form class="layui-form">
+<form class="layui-form" method="post" action="{% url 'myadmin_dologin' %}">
+    {% csrf_token %}
   <div class="demo-login-container">
     <div class="layui-form-item">
       <div class="layui-input-wrap">
         <div class="layui-input-prefix">
           <i class="layui-icon layui-icon-username"></i>
         </div>
-          <label>
-              <input type="text" name="username" value="" lay-verify="required" placeholder="用户名" lay-reqtext="请填写用户名" autocomplete="off" class="layui-input" lay-affix="clear">
-          </label>
+          <input type="text" name="username" value="" lay-verify="required" placeholder="用户名" lay-reqtext="请填写用户名" autocomplete="off" class="layui-input" lay-affix="clear">
       </div>
     </div>
     <div class="layui-form-item">
@@ -64,9 +66,7 @@
         <div class="layui-input-prefix">
           <i class="layui-icon layui-icon-password"></i>
         </div>
-          <label>
-              <input type="password" name="password" value="" lay-verify="required" placeholder="密   码" lay-reqtext="请填写密码" autocomplete="off" class="layui-input" lay-affix="eye">
-          </label>
+          <input type="password" name="password" value="" lay-verify="required" placeholder="密   码" lay-reqtext="请填写密码" autocomplete="off" class="layui-input" lay-affix="eye">
       </div>
     </div>
     <div class="layui-form-item">
@@ -77,11 +77,8 @@
               <i class="layui-icon layui-icon-vercode"></i>
             </div>
               <div class="captcha-container">
-                  <label>
-                      <input type="text" name="captcha" value="" lay-verify="required" placeholder="请输入验证码(不区分大小写)" class="layui-input" lay-reqtext="请填写验证码" autocomplete="off"  lay-affix="clear" id="captcha-input">
-                      <canvas id="canvas" width="100" height="36"></canvas>
-                  </label>
-
+                <input type="text" name="captcha" value="" lay-verify="required" placeholder="请输入验证码" class="layui-input" lay-reqtext="请填写验证码" autocomplete="off"  lay-affix="clear" id="captcha-input">
+                <canvas id="canvas" width="100" height="36"></canvas>
               </div>
           </div>
 
@@ -110,14 +107,13 @@ layui.use(function(){
   let layer = layui.layer;
   let show_num = [];
   draw(show_num);
-  {#var $ = layer.$#}
+  var $ = layer.$
   // 提交事件
 
   form.on('submit(demo-login)', function(data){
     let field = data.field; // 获取表单字段值
     let username = field.username;
     let password = field.password;
-    let captcha = field.captcha;
     // 进行用户名和密码的验证逻辑
     if (username === '') {
         layer.alert('请输入用户名！');
@@ -128,7 +124,9 @@ layui.use(function(){
         layer.alert('请输入密码！');
         return false;
     }
-
+    $("#canvas").on('click',function(){
+      draw(show_num);
+    })
     // 进行验证码的验证逻辑
     var val = $("#captcha-input").val().toLowerCase();
     var num = show_num.join("");
@@ -137,12 +135,18 @@ layui.use(function(){
         return false;
     } else if (val !== num) {
         layer.alert('验证码错误！请重新输入！');
+        $("#captcha-input").val('');
+        draw(show_num);
         return false;
     }
     // 执行跳转页面的操作
-    layer.alert('提交成功！');
-  // 执行跳转操作
+  {#  layer.alert('提交成功！');#}
+  {#// 执行跳转操作#}
+      window.location.href='{% url "myadmin_index" %}'
+      $("#captcha-input").val('');
+      draw(show_num);
     return false; // 阻止默认 form 跳转
+
   });
 });
 
