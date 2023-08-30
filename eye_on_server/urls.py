@@ -17,7 +17,7 @@ Including another URLconf
 # from django.contrib import admin
 from django.urls import path
 from eye_on_server.views import views, chart, data_process
-from eye_on_server.views.views import CustomLoginView
+# from eye_on_server.views.views import CustomLoginView
 
 urlpatterns = [
 

@@ -82,12 +82,6 @@ def home(request):
     return render(request, "base.html", locals())
 
 
-class CustomLoginView(LoginView):
-    template_name = 'admin/login.html'  # 替换为你自己的登录模板路径
-    redirect_authenticated_user = True
-    redirect_field_name = 'next'
-
-
 def systems(request):
     if request.method == 'GET':
         license_name = request.GET.get('license_name')
