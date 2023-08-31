@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.db.models import Q
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from datetime import datetime
 import random
 
@@ -14,76 +14,76 @@ from eye_on_server.views.tableShow import data_to_json
 import json
 from django.shortcuts import render
 
+
 # 用于将数据表中的数据转为json格式,传至对应的html页面中的table中
 
 
-def userdata_to_json(request, count):
-    data = []
-    users = User.objects.all()
-    for user in users:
-        overview_data = {}
-        if user.status == 1:
-            status = '正常'
-        elif user.status == 2:
-            status = '禁停'
-        elif user.status == 6:
-            status = '管理员'
-        elif user.status == 9:
-            status = '已删除'
-        else:
-            status = '未知状态'
+def get_data(request):  # 表格展示内容
+    print(1)
+    queryset = User.objects.filter(status__lt=9)
+    status_mapping = {
+        1: '正常',
+        2: '禁停',
+        6: '管理员',
+        9: '已删除',
+    }
+    # 获取请求中的页码和每页数量参数
+    page = request.GET.get('page', 1)
+    limit = request.GET.get('limit', 10)
 
-        update_at = user.update_at
-        update_at_str = update_at.isoformat()
+    paginator = Paginator(queryset, limit)
 
-        create_at = user.create_at
-        create_at_str = create_at.isoformat()
-
-        overview_data.update(id=user.id,
-                             username=user.username,
-                             nickname=user.nickname,
-                             status=status,
-                             create_at=create_at_str,
-                             update_at=update_at_str)
-        data.append(overview_data)
-    merged_data = {'code': 0, 'count': count, 'data': data}
-    file_path = './static/merger_users.json'
     try:
-        with open(file_path, 'w') as f:
-            json.dump(merged_data, f)
-    except Exception as e:
-        print('json文件生成失败', e)
-    # return render(request, "myadmin/user/index.html")
-    return HttpResponse('OK')
+        page_data = paginator.page(page)
+    except PageNotAnInteger:
+        page_data = paginator.page(1)
+    except EmptyPage:
+        page_data = paginator.page(paginator.num_pages)
+
+    data = [{
+        'id': item.id,
+        'username': item.username,
+        'nickname': item.nickname,
+        'status': status_mapping.get(item.status, '未知状态'),
+        'create_at': datetime.strftime(item.create_at, "%Y-%m-%d %H:%M:%S"),
+        'update_at': datetime.strftime(item.update_at, "%Y-%m-%d %H:%M:%S"),
+
+    } for item in page_data]
+
+    return JsonResponse({
+        'code': 0,
+        'msg': '',
+        'count': paginator.count,
+        'data': data
+    })
 
 
 def index(request):
     """浏览信息"""
     # 获取、判断并封装状态status搜索条件
-    umod = User.objects
-    mywhere = []
-    list_ = umod.filter(status__lt=9)
-    max_pages = len(list_)  # 总条数
-    if userdata_to_json(request, max_pages):
-        # 获取、判断并封装关keyword键搜索
-        kw = request.GET.get("keyword", None)
-        if kw:
-            # 查询员工账号或昵称中只要含有关键字的都可以
-            list_ = list_.filter(Q(username__contains=kw) | Q(nickname__contains=kw))
-            mywhere.append("keyword=" + kw)
-
-        # 获取、判断并封装状态status搜索条件
-        status = request.GET.get('status', '')
-        if status != '':
-            list_ = list_.filter(status=status)
-            mywhere.append("status=" + status)
-        # 获取页码总条数
-
-        max_pages = len(list_)  # 最大页数
-        print("max_pages", max_pages)
-        # 封装信息加载模板输出
-        context = {'maxpages': max_pages}
-        return render(request, "myadmin/user/index.html", context)
+    # umod = User.objects
+    # mywhere = []
+    # list_ = umod.filter(status__lt=9)
+    # max_pages = len(list_)  # 总条数
+    # # 获取、判断并封装关keyword键搜索
+    # kw = request.GET.get("keyword", None)
+    # if kw:
+    #     # 查询员工账号或昵称中只要含有关键字的都可以
+    #     list_ = list_.filter(Q(username__contains=kw) | Q(nickname__contains=kw))
+    #     mywhere.append("keyword=" + kw)
+    #
+    # # 获取、判断并封装状态status搜索条件
+    # status = request.GET.get('status', '')
+    # if status != '':
+    #     list_ = list_.filter(status=status)
+    #     mywhere.append("status=" + status)
+    # # 获取页码总条数
+    #
+    #     max_pages = len(list_)  # 最大页数
+    #     print("max_pages", max_pages)
+    #     # 封装信息加载模板输出
+    #     context = {'maxpages': max_pages}
+    return render(request, "myadmin/user/index.html")
 
 
 def database_show(request):

@@ -102,17 +102,18 @@
 
       table.render({
           elem:'#ID-table-demo-init',
-          url: '/static/merger_users.json', // 数据源的 URL
-          height: 'full-30',
+          url: '{% url "get_data" %}', // 数据源的 URL
+          {#height: 'full-30',#}
+          height:400,
           toolbar:'#toolbarDemo', //开启头部工具栏,并为其绑定左侧模板
           page: true, // 是否显示分页
           limit:5,
           limits:[5,10,15],
-
-          request:{//更改页码请求
-              pageName:'pageNum',
-              limitName:'pageSize',
-               },
+          {##}
+          {#request:{//更改页码请求#}
+          {#    pageName:'pageNum',//页码参数名称,默认page#}
+          {#    limitName:'pageSize',//每页数据量的名称,默认limit#}
+          {#     },#}
           cols: [[
             {field: 'id',  sort: true, title: 'ID'},
             {field: 'username', sort: true, title: '员工账号'},
@@ -143,14 +144,13 @@
           }else if(obj.event ==='delete') {
               layer.confirm('确定删除？', {icon: 3}, function (index) {
                   // 点击确定后执行删除操作
-                  {#doDelete(url); // 调用删除函数并传递URL参数#}
                   obj.del()//删除对应行(tr)的DOM结构,并更新缓存
                   layer.close(index)
                   layer.msg('已删除', {icon: 1});
               });
           }else if(obj.event === 'search'){
               search.name=$('#searchValue').val()
-              table.reload('demo',{
+              table.reload('ID-table-demo-init',{
                   where:search,
                   page:{
                       curr:1,//重新从第一页开始
@@ -159,18 +159,18 @@
           }
 
       })
-// 监听分页操作
-  table.on('page(ID-table-demo-init)', function(obj) {
-    table.reload('ID-table-demo-init', {
-      where: {
-        pageNum: obj.curr, // 当前页码
-        pageSize: obj.limit // 每页显示的数量
-      },
-      page: {
-        curr: obj.curr // 更新当前页码
-      }
-    });
-  });
+{#// 监听分页操作#}
+{#  table.on('page(ID-table-demo-init)', function(obj) {#}
+{#    table.reload('ID-table-demo-init', {#}
+{#      where: {#}
+{#        pageNum: obj.curr, // 当前页码#}
+{#        pageSize: obj.limit // 每页显示的数量#}
+{#      },#}
+{#      page: {#}
+{#        curr: obj.curr // 更新当前页码#}
+{#      }#}
+{#    });#}
+{#  });#}
       function doDelete(url){
           //执行删除操作
           window.location.href = url;//重定向到指定URL,触发删除操作

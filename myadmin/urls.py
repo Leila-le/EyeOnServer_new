@@ -8,7 +8,7 @@ urlpatterns = [
     path('', index.index, name="myadmin_index"),
     path('database/', user.database_show, name='database_show'),
     # 员工账号信息管理
-    # path('user/<int:pIndex>', user.index, name="myadmin_user_index"),  # 浏览信息
+    path('get_data', user.get_data, name="get_data"),  # 用户信息
     path('user', user.index, name="myadmin_user_index"),  # 浏览信息
     path('user/add', user.add, name="myadmin_user_add"),  # 加载添加表单
     path('user/insert', user.insert, name="myadmin_user_insert"),  # 执行信息添加
