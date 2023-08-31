@@ -42,15 +42,6 @@
             <div class="layui-card-body">
 
               <table class="layui-table" id="ID-table-demo-init" lay-filter="ID-table-demo-init">
-{#                <tr>#}
-{#                  <th lay-data="{field:'id', width:80, sort: true}" id="idColumn">ID</th>#}
-{#                  <th lay-data="{field:'username', width:80, sort: true}">员工账号</th>#}
-{#                  <th lay-data="{field:'nickname', width:80, sort: true}">昵称</th>#}
-{#                  <th lay-data="{field:'status', width:80, sort: true}">当前状态</th>#}
-{#                  <th lay-data="{field:'create_at', width:80, sort: true}">添加时间</th>#}
-{#                  <th lay-data="{field:'update_at', width:80, sort: true}">修改时间</th>#}
-{#                  <th lay-data="{fixed:'right', width:80}">操作</th>#}
-{#                </tr>#}
                   <script type="text/html" id="toolbarDemo">
                     <div class="layui-input-inline">
                         <input type="text" placeholder="搜索......" class="layui-input" lay-options="{split:true}" id="searchInput">
@@ -59,7 +50,6 @@
                         </div>
                     </div>
                   </script>
-                  <div id="demoPage"></div>
               </table>
             </div>
             <!-- /.box-body -->
@@ -84,9 +74,8 @@
       </div>
     </section>
     <!-- /.content -->
-    <script src="//unpkg.com/layui@2.8.15/dist/layui.js"></script>
-
-    <script type="text/html" id="Customizing">
+<script src="//unpkg.com/layui@2.8.15/dist/layui.js"></script>
+<script type="text/html" id="Customizing">
   <div class="layui-clear-space">
       <a id="editLink" class=" btn-success layui-btn layui-btn-sm" lay-event="edit" >编辑</a>
       <button type="button" class="layui-btn layui-btn-sm layui-btn-normal delete-button" lay-on="test-confirm" id="delLink" lay-event="delete" >删除</button>
@@ -99,7 +88,7 @@
       let layer = layui.layer;
       let util = layui.util;
       let table = layui.table;
-
+      let $ = layui.$;
       table.render({
           elem:'#ID-table-demo-init',
           url: '{% url "get_data" %}', // 数据源的 URL
@@ -109,7 +98,6 @@
           page: true, // 是否显示分页
           limit:5,
           limits:[5,10,15],
-          {##}
           {#request:{//更改页码请求#}
           {#    pageName:'pageNum',//页码参数名称,默认page#}
           {#    limitName:'pageSize',//每页数据量的名称,默认limit#}
@@ -131,7 +119,7 @@
           let data = obj.data;
           if(obj.event ==='edit'){
               $.ajax({
-                url:'{% url "myadmin_user_edit" %}',
+                url:'{% url 'myadmin_user_edit' %}',
                 type:'GET',
                 data:{id:data.id},
                 success:function (data){
@@ -145,8 +133,18 @@
               layer.confirm('确定删除？', {icon: 3}, function (index) {
                   // 点击确定后执行删除操作
                   obj.del()//删除对应行(tr)的DOM结构,并更新缓存
-                  layer.close(index)
-                  layer.msg('已删除', {icon: 1});
+                  layer.close(index);
+                  $.ajax({
+                      url:'{% url 'myadmin_user_del' %}',
+                      type:'POST',
+                      data:{id:data.id},
+                      success:function (data){
+                          layer.msg('已删除', {icon: 1});
+                      },
+                      error:function (xhr, status, error){
+                          console.error("Error:", error)
+                      }
+                  })
               });
           }else if(obj.event === 'search'){
               search.name=$('#searchValue').val()
@@ -157,25 +155,7 @@
                   }
               })//表格重载
           }
-
       })
-{#// 监听分页操作#}
-{#  table.on('page(ID-table-demo-init)', function(obj) {#}
-{#    table.reload('ID-table-demo-init', {#}
-{#      where: {#}
-{#        pageNum: obj.curr, // 当前页码#}
-{#        pageSize: obj.limit // 每页显示的数量#}
-{#      },#}
-{#      page: {#}
-{#        curr: obj.curr // 更新当前页码#}
-{#      }#}
-{#    });#}
-{#  });#}
-      function doDelete(url){
-          //执行删除操作
-          window.location.href = url;//重定向到指定URL,触发删除操作
-      }
-
   });
 </script>
 {% endblock %}

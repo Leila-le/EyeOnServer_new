@@ -23,8 +23,9 @@
             </div>
             <!-- /.box-header -->
             <!-- form start -->
-            <form class="form-horizontal" action="{% url 'myadmin_user_update' user.id %}" method="post">
+            <form class="form-horizontal" action="{% url 'myadmin_user_update' %}" method="post">
                 {% csrf_token %}
+            <input type="hidden" name="id" value="{{ user.id }}">
               <div class="box-body">
 
                 <div class="layui-form-item">
@@ -41,7 +42,7 @@
                     <div class="layui-input-prefix">
                       <i class="layui-icon layui-icon-username"></i>
                     </div>
-                      <input type="text" name="nickname" value="" lay-verify="required" placeholder="昵称" autocomplete="off" class="layui-input" lay-affix="clear">
+                      <input type="text" name="nickname" value="" lay-verify="required" placeholder="昵称" autocomplete="off" class="layui-input" >
                   </div>
                 </div>
 
@@ -88,11 +89,9 @@
               <!-- /.box-footer -->
             </form>
           </div>
-
           <!-- /.box -->
         </div>
       </div>
-
     </section>
     <!-- /.content -->
 {% endblock %}

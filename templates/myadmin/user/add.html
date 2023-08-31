@@ -81,56 +81,43 @@ layui.use(function() {
     let layer = layui.layer;
     let util = layui.util;
 
-    function submintForm(){
-        let formData = new FormData(document.getElementById('user-add-tset'));
-
-        $.ajax({
-          url: {% url 'myadmin_user_insert' %},
-          type: 'POST',
-          data: formData,
-          processData: false,
-          contentType: false,
-          success: function(response) {
-            if (response.success) {
-              // 注册成功的处理逻辑
-              layer.msg(response.message);
-              // 其他操作...
-            } else {
-              // 注册失败的处理逻辑
-              layer.msg(response.message);
-              // 其他操作...
-            }
-          },
-          error: function(xhr, textStatus, errorThrown) {
-            // 请求错误的处理逻辑
-            console.log(errorThrown);
-          }
-        });
-    }
-{#    {% for message in messages %}#}
-{#    layer.msg('{{ message }}');#}
-{#    {% endfor %}#}
-    // 自定义验证规则
-    form.verify({
-        // 确认密码
-        confirmPassword: function (value, item) {
-            let passwordValue = $('#reg-password').val();
-            if (value !== passwordValue) {
-                return '两次密码输入不一致';
-            }
-        }
-    });
     //提交事件
     form.on('submit(demo-login)', function(data) {
         let field = data.field; // 获取表单字段值
-        // 显示填写结果，仅作演示用
-        layer.alert(JSON.stringify(field), {
-            title: '当前填写的字段值'
+        let username = field.username;
+        let password = field.password;
+        let confirm_password = field.confirmPassword;
+
+        if(username===''){
+            layer.alert('请输入用户名！');
+            return false;
+        }else if (password === '') {
+            console.log(2222)
+            layer.alert('请输入密码！');
+            return false;
+        }
+
+        //检查用户是否已存在
+        $.ajax({
+            url: '/myadmin_user_check_username/',
+            type: 'POST',
+            data: {
+                'username': username
+            },
+            success: function(response) {
+                if (response.exists) {
+                    layer.alert('该用户名已存在！');
+                } else {
+                    // 提交表单
+                    data.elem.submit();
+                }
+            },
+            error: function() {
+                layer.alert('请求失败，请重试！');
+            }
         });
         return false;//阻止默认form跳转
     })
-
-
 })
 </script>
 {% endblock %}

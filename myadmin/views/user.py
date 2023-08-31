@@ -1,17 +1,13 @@
-from django.contrib import messages
-from django.core.exceptions import ValidationError
-from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import JsonResponse
-from django.db.models import Q
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from datetime import datetime
-import random
+
+from django.views.decorators.csrf import csrf_exempt
 
 from myadmin.models import User
 
 from eye_on_server.views.tableShow import data_to_json
-import json
 from django.shortcuts import render
 
 
@@ -19,7 +15,6 @@ from django.shortcuts import render
 
 
 def get_data(request):  # 表格展示内容
-    print(1)
     queryset = User.objects.filter(status__lt=9)
     status_mapping = {
         1: '正常',
@@ -60,29 +55,6 @@ def get_data(request):  # 表格展示内容
 
 def index(request):
     """浏览信息"""
-    # 获取、判断并封装状态status搜索条件
-    # umod = User.objects
-    # mywhere = []
-    # list_ = umod.filter(status__lt=9)
-    # max_pages = len(list_)  # 总条数
-    # # 获取、判断并封装关keyword键搜索
-    # kw = request.GET.get("keyword", None)
-    # if kw:
-    #     # 查询员工账号或昵称中只要含有关键字的都可以
-    #     list_ = list_.filter(Q(username__contains=kw) | Q(nickname__contains=kw))
-    #     mywhere.append("keyword=" + kw)
-    #
-    # # 获取、判断并封装状态status搜索条件
-    # status = request.GET.get('status', '')
-    # if status != '':
-    #     list_ = list_.filter(status=status)
-    #     mywhere.append("status=" + status)
-    # # 获取页码总条数
-    #
-    #     max_pages = len(list_)  # 最大页数
-    #     print("max_pages", max_pages)
-    #     # 封装信息加载模板输出
-    #     context = {'maxpages': max_pages}
     return render(request, "myadmin/user/index.html")
 
 
@@ -97,55 +69,62 @@ def add(request):
     return render(request, "myadmin/user/add.html")
 
 
+@csrf_exempt
+def check_username(request):
+    """检查用户名是否已存在"""
+    if request.method == 'POST':
+        print(111)
+        username = request.POST.get('username')
+        user_exists = User.objects.filter(username=username).exists()
+        return JsonResponse({'exists': user_exists})
+
+
 def insert(request):
     """执行添加"""
     if request.method == 'POST':
-        try:
-            ob = User()
-            username = request.POST['username']
-            if User.objects.filter(username=username).exists():
-                raise ValidationError('该账号已被注册')
+        print(222)
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
 
-            ob.username = username
-            ob.nickname = request.POST['nickname']
-            # 获取密码并md5
-            import hashlib
-            md5 = hashlib.md5()
-            n = random.randint(100000, 999999)
-            s = request.POST['password'] + str(n)
-            md5.update(s.encode('utf-8'))
-            ob.password_hash = md5.hexdigest()
-            ob.password_salt = n
-            ob.status = 1
-            ob.create_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            ob.update_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            ob.save()
-            # context = {"info": "添加成功！"}
-        except ValidationError as err:
-            return JsonResponse({'success': False, 'message': str(err)})  # 添加错误消息到消息队列
-        # return render(request, "myadmin/info.html", context)
-    return JsonResponse({'success': True, 'message': '添加成功！'})
+        if User.objects.filter(username=username).exists():
+            return HttpResponse('该用户名已存在！')
+
+        print("password-----confirm_password:", password,confirm_password)
+        if password != confirm_password:
+            return HttpResponse('密码和确认密码不匹配！')
+
+        # 创建用户
+        user = User.objects.create_user(username=username, password=password)
+
+        return HttpResponse('注册成功！')
+
+    return render(request, 'myadmin/info.html')
 
 
+@csrf_exempt
 def delete(request):
     """删除信息"""
-    if request.method == 'GET':
-        uid = request.GET.get('id')
+    if request.method == 'POST':
+        uid = request.POST.get('id')
         try:
             ob = User.objects.get(id=uid)
             ob.status = 9
             ob.update_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             ob.save()
-            context = {"info": "删除成功！"}
+            # 返回响应给前端，确认删除成功
+            response = {'message': '删除成功'}
         except Exception as err:
             print(err)
-            context = {"info": "删除失败"}
+            # context = {"info": "删除失败"}
+            response = {'message': '删除失败'}
+        #
+        # # return JsonResponse(context)
+        # return render(request, "myadmin/info.html", context)
+        return JsonResponse(response, status=200)
 
-        # return JsonResponse(context)
-        return render(request, "myadmin/info.html", context)
 
-
-def edit(request, uid):
+def edit(request):
     """加载编辑信息页面"""
     if request.method == 'GET':
         uid = request.GET.get('id')
@@ -154,14 +133,18 @@ def edit(request, uid):
             context = {"user": ob}
             return render(request, "myadmin/user/edit.html", context)
         except Exception as err:
-            context = {"info": "没有找到要修改的信息！"}
+            context = {"info": err}
             return render(request, "myadmin/info.html", context)
+    else:
+        return HttpResponse("Invalid request")  # 返回一个适当的响应
 
 
+@csrf_exempt
 def update(request):
     """执行编辑信息"""
-    if request.method == 'GET':
-        uid = request.GET.get('id')
+    if request.method == 'POST':
+        uid = request.POST.get('id')
+        print('uid: ', uid)
         try:
             ob = User.objects.get(id=uid)
             ob.nickname = request.POST['nickname']
@@ -173,6 +156,8 @@ def update(request):
             print(err)
             context = {"info": "修改失败"}
         return render(request, "myadmin/info.html", context)
+    else:
+        return HttpResponse("Invalid request")  # 返回一个适当的响应
 
 
 """
