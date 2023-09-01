@@ -21,8 +21,7 @@ urlpatterns = [
     # path('user/doresetpass/<int:uid>', user.doresetpass, name="myadmin_user_doresetpass"),
 
     # 后台管理员路由
-    path('login', index.login, name="myadmin_login"),
+    path('login', index.login_, name="myadmin_login"),
     path('dologin', index.dologin, name="myadmin_dologin"),
     path('logout', index.logout, name="myadmin_logout"),
-    # path('verify', index.verify, name="myadmin_verify"), #验证码
 ]

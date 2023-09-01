@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
@@ -12,8 +13,6 @@ from django.shortcuts import render
 
 
 # 用于将数据表中的数据转为json格式,传至对应的html页面中的table中
-
-
 def get_data(request):  # 表格展示内容
     queryset = User.objects.filter(status__lt=9)
     status_mapping = {
@@ -69,37 +68,39 @@ def add(request):
     return render(request, "myadmin/user/add.html")
 
 
-@csrf_exempt
 def check_username(request):
     """检查用户名是否已存在"""
-    if request.method == 'POST':
-        print(111)
-        username = request.POST.get('username')
-        user_exists = User.objects.filter(username=username).exists()
-        return JsonResponse({'exists': user_exists})
-
-
-def insert(request):
-    """执行添加"""
+    print(1111)
     if request.method == 'POST':
         print(222)
         username = request.POST.get('username')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-
+        print('username', username)
+        # 检查用户名是否已存在
         if User.objects.filter(username=username).exists():
-            return HttpResponse('该用户名已存在！')
+            print("用户已存在")
+            return JsonResponse(True, safe=False)  # 用户名已存在，返回 True
+        else:
+            print('当前用户名还未被注册,可以继续.....')
+            return JsonResponse(False, safe=False)
+    return JsonResponse({}, safe=False)
 
-        print("password-----confirm_password:", password,confirm_password)
-        if password != confirm_password:
-            return HttpResponse('密码和确认密码不匹配！')
+
+def insert(request):
+    if request.method == 'POST':
+        print(3333)
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        nickname = request.POST.get('nickname')
+        print('username: ', username)
+        print('password: ', password)
+        print('nickname: ', nickname)
 
         # 创建用户
-        user = User.objects.create_user(username=username, password=password)
-
-        return HttpResponse('注册成功！')
-
-    return render(request, 'myadmin/info.html')
+        # User.objects.filter(username=username).exists()
+        User.objects.create_user(username=username, password=password, nickname=nickname, status=1)
+        return HttpResponse("User created successfully")
+    else:
+        return HttpResponse("Invalid request")  # 返回一个适当的响应
 
 
 @csrf_exempt

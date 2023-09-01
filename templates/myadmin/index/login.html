@@ -115,15 +115,16 @@ layui.use(function(){
   let show_num = [];
   draw(show_num);
   let $ = layer.$
-// 提交事件
+
     $("#canvas").on('click',function(){
       draw(show_num);
     })
+    // 提交事件
   form.on('submit(demo-login)', function(data){
     let field = data.field; // 获取表单字段值
     let username = field.username;
     let password = field.password;
-    console.log(username)
+    console.log(username);
     // 进行验证码的验证逻辑
     let val = $("#captcha-input").val().toLowerCase();
     let num = show_num.join("");  //获取验证码内容
