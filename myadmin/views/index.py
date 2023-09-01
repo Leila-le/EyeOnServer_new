@@ -11,6 +11,7 @@ from myadmin.models import User
 def index(request):
     return render(request, "myadmin/user/index.html")
 
+
 def login_(request):
     """加载登录页面"""
     return render(request, "myadmin/index/login.html")
@@ -26,10 +27,12 @@ def dologin(request):
         user = User.objects.get(username=username)
         status = user.status
         if user is not None and status != 9:
+
             login(request, user)
+            request.session['adminuser'] = user.toDict()
             # 登录成功地处理逻辑
             if status == 6:
-                return render(request, 'myadmin/base.html', {'adminuser': user.nickname})
+                return redirect("myadmin_index")
             else:
                 return redirect('ServerChart')
         else:

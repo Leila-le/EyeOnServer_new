@@ -13,11 +13,9 @@
   <div class="layui-header">
     <div class="layui-logo layui-hide-xs layui-bg-black">
         <p>
-          {% if adminuser %}
-              <p>Welcome, {{ adminuser.nickname }}!</p>
-          {% else %}
-              <p>Not logged in.</p>
-          {% endif %}
+
+          {{request.session.adminuser.nickname}} - 管理员
+          <small>{{ request.session.adminuser.create_at }}加入</small>
         </p>
     </div>
     <!-- 头部区域（可配合layui 已有的水平导航） -->
