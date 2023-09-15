@@ -339,11 +339,11 @@ def insert(request):
         try:
             if User.is_staff:
                 User.objects.create_user(username=username, password=password, nickname=nickname, status=status,
-                                             is_staff=1)
+                                         is_staff=1)
                 logging.debug('成功创建普通账号')
             elif User.is_superuser:
                 User.objects.create_user(username=username, password=password, nickname=nickname, status=status,
-                                             is_superuser=1)
+                                         is_superuser=1)
                 logging.debug('成功创建管理员账号')
             return HttpResponse("User created successfully")
         except Exception as e:
