@@ -1,0 +1,196 @@
+{% extends "myadmin/../myadmin/base.html" %}
+{% block main_body %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <blockquote class="layui-elem-quote layui-text">
+            账号管理
+        <span class="layui-breadcrumb" lay-separator=">" >
+          <a href="">首页</a>
+          <a href="" class="active">账号信息管理</a>
+        </span>
+        </blockquote>
+    </section>
+    <!-- Main content -->
+    <section class="content container-fluid">
+      <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+          <div class="layui-card">
+            <div class="layui-card-header">
+                <h2 >添加员工账号信息</h2>
+            </div>
+            <!-- /.box-header -->
+            <!-- form start -->
+            <form class="layui-form add_user" >
+                {% csrf_token %}
+              <div class="layui-card-body">
+                <div class="layui-form-item">
+                  <div class="layui-input-wrap">
+                    <div class="layui-input-prefix">
+                      <i class="layui-icon layui-icon-username"></i>
+                    </div>
+                      <input type="text" id="username" name="username" value="" lay-verify="required" placeholder="账号" autocomplete="off" class="layui-input" lay-affix="clear">
+                  </div>
+                </div>
+
+                <div class="layui-form-item">
+                  <div class="layui-input-wrap">
+                    <div class="layui-input-prefix">
+                      <i class="layui-icon layui-icon-username"></i>
+                    </div>
+                      <input type="text" name="nickname" value="" lay-verify="required" placeholder="昵称" autocomplete="off" class="layui-input" lay-affix="clear">
+                  </div>
+                </div>
+
+                <div class="layui-form-item">
+                  <div class="layui-input-wrap">
+                    <div class="layui-input-prefix">
+                      <i class="layui-icon layui-icon-password"></i>
+                    </div>
+                      <input type="password" name="password" value="" lay-verify="required" placeholder="密码" autocomplete="off" class="layui-input" id="password" lay-affix="eye">
+                  </div>
+                </div>
+
+                <div class="layui-form-item">
+                  <div class="layui-input-wrap">
+                    <div class="layui-input-prefix">
+                      <i class="layui-icon layui-icon-password"></i>
+                    </div>
+                      <input type="password" name="confirmPassword" value="" lay-verify="required|confirmPass" placeholder="确认密码" autocomplete="off" id="reg-password" class="layui-input" lay-affix="eye">
+                  </div>
+                </div>
+
+                <div class="layui-form-item">
+                  <label >账号权限：</label>
+                  <div class="controls">
+                      <label>
+                          &nbsp; &nbsp;
+                          <input type="radio" name="status" class="input-xlarge" value="1" checked/>
+                      </label> 普通用户
+                      <label>
+                          &nbsp; &nbsp;
+                          <input type="radio" name="status" class="input-xlarge" value="6" checked/>
+                      </label> 管理员
+                  </div>
+                </div>
+              </div>
+              <!-- /.box-body -->
+              <div class="box-footer">
+                <div class="layui-box">
+                  <button class="layui-btn btn-primary" lay-submit lay-filter="demo-submit">提交</button> &nbsp;
+                  <button type="reset" class="layui-btn btn-default">重置</button>
+                </div>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+    <script src="//unpkg.com/layui@2.8.15/dist/layui.js"></script>
+    <script src="https://cdn.staticfile.org/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        // 在模板中将 CSRF 令牌传递给 JavaScript
+        const csrfToken = '{{ csrf_token }}';
+    </script>
+<script>
+layui.use(['jquery', 'form', 'layer'],function () {
+    let $ = layui.$;
+    let form = layui.form;
+    let layer = layui.layer;
+    let usernameInput = $('#username');
+    let availabilityMessage;
+    // 添加 CSRF 令牌到请求头
+    $.ajaxSetup({
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    })
+  // 检查用户名可用性的函数
+  function checkUsernameAvailability(username) {
+    $.ajax({
+      url: '{% url "myadmin_user_check_username" %}',
+      type: 'POST',
+      data: {
+        'username': username
+      },
+      success: function(response) {
+        if (response === true) {
+          // 用户名已存在的处理逻辑
+          layer.alert('该用户名已存在！');
+          availabilityMessage = '';  // 设置为不可用
+        } else {
+          // 用户名可用的处理逻辑
+          availabilityMessage = 'success';
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error('发生错误:', error);
+      }
+    });
+  }
+  // 监听用户名输入框的失去焦点事件
+  usernameInput.on('blur', function() {
+    let username = usernameInput.val();
+    checkUsernameAvailability(username);
+  });
+    // 提交事件
+    form.on('submit(demo-submit)', function (data) {
+        let field = data.field; // 获取表单字段值
+        let username = field.username;
+        let password = field.password;
+        let nickname = field.nickname;
+        let confirmPassword = field.confirmPassword;
+        let status = document.querySelector('input[name="status"]:checked').value;
+        console.log(status);
+          // 检查密码是否一致
+          if (password !== confirmPassword) {
+            layer.alert('两次密码不一致！');
+            return false; // 阻止表单提交
+          }
+
+        // 检查用户是否已存在
+        if(availabilityMessage==='success')
+        {
+            // 提交表单
+            $.ajax({
+                url: '{% url "myadmin_user_insert" %}',
+                type: 'POST',
+                data: {
+                    'username': username,
+                    'password': password,
+                    'nickname': nickname,
+                    'status':status,
+                },
+                success: function (response) {
+                    console.log(response)
+                    layer.alert('注册成功！');
+                    // 清空表单字段
+                    $('input[name="username"]').val('');
+                    $('input[name="password"]').val('');
+                    $('input[name="nickname"]').val('');
+                    $('input[name="confirmPassword"]').val('');
+                },
+                error: function(xhr, status, error) {
+                  console.error('发生错误:', error);
+                }
+            });
+        }else if (availabilityMessage === '') {
+            // 用户名不可用，显示警告框或其他处理逻辑
+            layer.alert('该用户名已存在！', function (index) {
+                // 清空表单字段
+                $('input[name="username"]').val('');
+                $('input[name="password"]').val('');
+                $('input[name="nickname"]').val('');
+                $('input[name="confirmPassword"]').val('');
+                // 关闭弹出框
+            layer.close(index);
+            });
+            return false; // 阻止表单提交
+        }else{
+            // 用户名未经验证，显示警告框或其他处理逻辑
+            layer.alert('请先验证用户名可用性！');}
+            return false;// 阻止默认 form 跳转
+    });
+});
+</script>
+{% endblock %}

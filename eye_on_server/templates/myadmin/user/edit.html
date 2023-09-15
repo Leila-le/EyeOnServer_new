@@ -1,0 +1,97 @@
+{% extends "myadmin/../myadmin/base.html" %}
+
+{% block main_body %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <blockquote class="layui-elem-quote layui-text">
+            账号管理
+        <span class="layui-breadcrumb" lay-separator=">" >
+          <a href="">首页</a>
+          <a href="" class="active">账号信息管理</a>
+        </span>
+        </blockquote>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="box">
+            <div class="box-header">
+                <h2 class="box-title"><span class="glyphicon glyphicon-calendar" aria-hidden="true">员工信息修改</span></h2>
+            </div>
+            <!-- /.box-header -->
+            <!-- form start -->
+            <form class="form-horizontal" action="{% url 'myadmin_user_update' %}" method="post">
+                {% csrf_token %}
+            <input type="hidden" name="id" value="{{ user.id }}">
+              <div class="box-body">
+
+                <div class="layui-form-item">
+                  <div class="layui-input-wrap">
+                    <div class="layui-input-prefix">
+                      <i class="layui-icon layui-icon-username"></i>
+                    </div>
+                      <input readonly type="text" name="username" value="{{user.username}}" lay-verify="required" placeholder="账号" autocomplete="off" class="layui-input" lay-affix="eye">
+                  </div>
+                </div>
+
+                <div class="layui-form-item">
+                  <div class="layui-input-wrap">
+                    <div class="layui-input-prefix">
+                      <i class="layui-icon layui-icon-username"></i>
+                    </div>
+                      <input type="text" name="nickname" value="{{ user.nickname }}" lay-verify="required" placeholder="昵称" autocomplete="off" class="layui-input" >
+                  </div>
+                </div>
+
+                <div class="layui-form-item">
+                  <div class="layui-input-wrap">
+                      <div><label>添加时间:{{ user.create_at|date:'Y-m-d H:i:s' }}</label></div>
+                  </div>
+                </div>
+                <div class="layui-form-item">
+                  <div class="layui-input-wrap">
+                      <div><label>上一次修改时间:{{ user.update_at|date:'Y-m-d H:i:s' }}</label></div>
+                  </div>
+                </div>
+                <div class="layui-form-item">
+                  <label >当前状态：</label>
+                  <div class="controls">
+                      <label>
+                          &nbsp; &nbsp;
+                          <input type="radio" name="status" class="input-xlarge" value="1"
+                                 {% if user.status == 1 %}checked{% endif %}/>
+                      </label> 正常
+                      <label>
+                          &nbsp; &nbsp;
+                          <input type="radio" name="status" class="input-xlarge" value="2"
+                                 {% if user.status == 2 %}checked{% endif %}/>
+                      </label> 禁用
+                      <label>
+                          &nbsp; &nbsp;
+                          <input type="radio" name="status" class="input-xlarge" value="6"
+                                 {% if user.status == 6 %}checked{% endif %}/>
+                      </label> 管理员
+                  </div>
+                </div>
+              </div>
+              <!-- /.box-body -->
+              <div class="box-footer">
+                <div class="col-sm-offset-2 col-sm-10">
+                  <button type="submit" class="layui-btn btn-primary">保存</button> &nbsp;
+                  <button type="reset" class="layui-btn btn-default">重置</button>
+                <div class="col-sm-offset-2 col-sm-10">
+              </div>
+                </div>
+              </div>
+              <!-- /.box-footer -->
+            </form>
+          </div>
+          <!-- /.box -->
+        </div>
+      </div>
+    </section>
+    <!-- /.content -->
+{% endblock %}

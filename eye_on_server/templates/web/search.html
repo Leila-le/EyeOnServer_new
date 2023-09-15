@@ -1,0 +1,124 @@
+{% extends 'web/base.html' %}
+{% load static %}
+{% block breadcrumb %}
+  <span class="layui-breadcrumb" lay-separator=">">
+  <a href="{% url 'ServerChart' %}">首页</a>
+  <a href="{% url 'ServerChart' %}">资源折线图</a>
+  <a href="{% url 'search' %}">搜索结果</a>
+</span>
+{% endblock %}
+{% block search %}
+    <li class="layui-nav-item layui-show-xs-inline-block " lay-header-event="menuLeft"></li>
+      <li class="layui-nav-item layui-hide-xs" style="display: inline-block;padding-right: 10px">
+         <div class="layui-input-group">
+            <label>
+                <input type="text" placeholder="搜索......" class="layui-input" lay-options="{split:true}" id="searchInput">
+            </label>
+            <div class=" layui-input-suffix" style="cursor: pointer;"><!--class="layui-input-split"-->
+                <i class="layui-icon layui-icon-search search" style="font-size: 15px;" lay-affix="search" id="searchIcon" lay-event="search"></i>
+            </div>
+         </div>
+      </li>
+    <script src="{% static "/js/layui.js" %}"></script>
+    <script src="{% static 'js/echarts/echarts.min.js' %}"></script>
+    <script>
+    //JS
+    layui.use(['element', 'layer', 'util', 'form','jquery'], function() {
+        let layer = layui.layer;
+        let $ = layui.$;
+
+        //回车后搜素
+        $(".layui-input").keydown(function (e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                performSearch();
+            }
+        });
+        //点击搜索键搜索
+        document.getElementById('searchIcon').addEventListener('click', function () {
+            performSearch();
+        });
+
+        function performSearch() {
+            let searchInput = document.getElementById('searchInput');
+            let searchValue = searchInput.value;
+
+            if (searchValue.trim() === '') {
+                layui.layer.msg('请输入搜索内容');
+                return;
+            }
+            console.log(searchValue);
+
+            $.ajax({
+                url: '{% url 'search' %}',
+                type: 'GET',
+                data: {keywords: searchValue},
+                success: function (response) {
+                    displaySearchResults(response,searchValue);
+                },
+                error: function () {
+                    layer.msg('搜索请求失败');
+                }
+            });
+        }
+
+        function displaySearchResults(results,searchValue) {
+            let searchResultsDiv = $('#searchResults');
+            searchResultsDiv.empty();
+
+            if (results.length === 0) {
+                searchResultsDiv.text('未找到匹配的结果');
+            } else {
+                for (let i = 0; i < results.length; i++) {
+                    let resultItem = $('<div>').text(results[i]);
+                    searchResultsDiv.append(resultItem);
+                }
+
+                // 搜索跳转
+                window.location.href = '?keywords=' + encodeURIComponent(searchValue);
+            }
+        }
+    })
+    </script>
+{% endblock %}
+{% block SearchChart %}
+<div class="layui-bg-grey" style="padding: 16px;">
+  <div class="layui-row layui-col-space15" >
+    {% for data_line in data_lines %}
+    <div class="layui-col-md4">
+      <div class="layui-card" id="searchResults">
+          <div class="layui-card-header ">
+            <a  >磁盘当前使用率</a>
+            <div class="layui-progress layui-progress-big" lay-showpercent="true" style="width: auto;position: relative; ">
+                <div class="layui-progress-bar" lay-percent="{{disk_percent.pop}}%" style="width: 100% ;position: absolute;"></div>
+            </div>
+        </div>
+          <br>
+        <div class="layui-card-body" >
+            <div class="layui-row " >
+                <div class="layui-container" id="layui-col-md4" style="width: 400px;height: 400px" >
+                    {{ data_line |safe }}
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+<script src="{% static 'js/layui.js' %}"></script>
+<script>
+    let progressBarList = document.querySelectorAll('.layui-progress-bar');
+    progressBarList.forEach(function (progressBar){
+        let diskPercent = parseInt(progressBar.getAttribute('lay-percent'), 10);
+        if (diskPercent > 80){
+            progressBar.classList.add('layui-bg-red');
+        }else if(diskPercent>60){
+            progressBar.classList.add('layui-bg-orange');
+        }else{
+            progressBar.classList.add('layui-bg-primary');
+        }
+    });
+
+</script>
+{% endblock %}

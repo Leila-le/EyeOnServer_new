@@ -1,0 +1,175 @@
+{% extends "myadmin/../myadmin/base.html" %}
+{% block main_body %}
+    <style>
+        .layui-flex-container{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        form {
+            float: right;
+            margin-top: 7px;
+        }
+        .horizontal-pagination li {
+          display: inline-block;
+          margin: 0 5px;
+        }
+    </style>
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <blockquote class="layui-elem-quote layui-text">
+            <div class="layui-flex-container">
+                <div>账号管理
+                    <span class="layui-breadcrumb" lay-separator=">" >
+                      <a href="">首页</a>
+                      <a href="" class="active">账号信息管理</a>
+                    </span>
+                </div>
+
+            </div>
+        </blockquote>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+      <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+          <div class="layui-card">
+            <div class="layui-card-header">
+                <div><h4 >员工账号信息表</h4></div>
+            </div>
+            <!-- /.card-header -->
+            <div class="layui-card-body">
+
+              <table class="layui-table" id="ID-table-demo-init" lay-filter="ID-table-demo-init">
+{#                  <script type="text/html" id="toolbarDemo">#}
+{#                    <div class="layui-input-inline">#}
+{#                        <label for="searchInput">#}
+{#                            <input type="text" placeholder="搜索......" class="layui-input" lay-options="{split:true}" id="searchInput">#}
+{#                        </label>#}
+{#                        <div class=" layui-input-suffix" style="cursor: pointer;background-color: #23292e"><!--class="layui-input-split"-->#}
+{#                            <i class="layui-icon layui-icon-search" lay-affix="search" id="searchIcon" style="font-size: 15px;color: #fafafa" lay-event="search"></i>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                  </script>#}
+              </table>
+            </div>
+            <!-- /.box-body -->
+            <div class="layui-box">
+                <div class="layui-container">
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-xs8">
+                            <div class="layui-box">
+                                <a role="button" href="{% url 'myadmin_user_add' %}" class="btn-primary layui-btn layui-btn-ms">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 添加账户
+                                </a>
+                            </div>
+                        </div>
+                        <div class="layui-col-xs4" id="lay-page">
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+          <!-- /.box -->
+        </div>
+      </div>
+    </section>
+    <!-- /.content -->
+<script src="//unpkg.com/layui@2.8.15/dist/layui.js"></script>
+<script type="text/html" id="Customizing">
+  <div class="layui-clear-space">
+      <a id="editLink" class=" btn-success layui-btn layui-btn-sm" lay-event="edit" >编辑</a>
+      <button type="button" class="layui-btn layui-btn-sm layui-btn-normal delete-button" lay-on="test-confirm" id="delLink" lay-event="delete" >删除</button>
+      <a id="reset" class="layui-btn layui-btn-warm layui-btn-sm" lay-event="reset" >重置密码</a>
+  </div>
+</script>
+
+<script>
+  layui.use(['table','layer'],function(){
+      let layer = layui.layer;
+      let util = layui.util;
+      let table = layui.table;
+      let $ = layui.$;
+      table.render({
+          elem:'#ID-table-demo-init',
+          url: '{% url "get_data" %}', // 数据源的 URL
+          {#height: 'full-30',#}
+          height:400,
+          toolbar:'#toolbarDemo', //开启头部工具栏,并为其绑定左侧模板
+          page: true, // 是否显示分页
+          limit:5,
+          limits:[5,10,15],
+          {#request:{//更改页码请求#}
+          {#    pageName:'pageNum',//页码参数名称,默认page#}
+          {#    limitName:'pageSize',//每页数据量的名称,默认limit#}
+          {#     },#}
+          cols: [[
+            {field: 'id',  sort: true, title: 'ID'},
+            {field: 'username', sort: true, title: '员工账号'},
+            {field: 'nickname', sort: true, title: '昵称'},
+            {field: 'status', sort: true, title: '当前状态'},
+            {field: 'create_at', sort: true, title: '添加时间'},
+            {field: 'update_at',  sort: true, title: '修改时间'},
+            {fixed: 'right', title: '操作',templet:'#Customizing',}
+          ]],
+          done: function(res, curr, count) {
+            console.log(res); // 检查数据是否正确
+          }
+      })
+      table.on('tool(ID-table-demo-init)',function(obj){
+          let data = obj.data;
+          if(obj.event ==='edit'){
+              $.ajax({
+                url:'{% url 'myadmin_user_edit' %}',
+                type:'GET',
+                data:{id:data.id},
+                success:function (data){
+                    window.location.href=this.url
+                },
+                error:function (xhr, status, error){
+                    console.error("Error:", error);
+                }
+              });
+          }else if(obj.event ==='delete') {
+              layer.confirm('确定删除？', {icon: 3}, function (index) {
+                  // 点击确定后执行删除操作
+                  obj.del()//删除对应行(tr)的DOM结构,并更新缓存
+                  layer.close(index);
+                  $.ajax({
+                      url:'{% url 'myadmin_user_del' %}',
+                      type:'POST',
+                      data:{id:data.id},
+                      success:function (data){
+                          layer.msg('已删除', {icon: 1});
+                      },
+                      error:function (xhr, status, error){
+                          console.error("Error:", error)
+                      }
+                  })
+              });
+          }else if(obj.event ==='reset'){
+              $.ajax({
+                url:'{% url 'myadmin_user_resetpass' %}',
+                type:'GET',
+                data:{id:data.id},
+                success:function (data){
+                    window.location.href=this.url
+                },
+                error:function (xhr, status, error){
+                    console.error("Error:", error);
+                }
+              });
+          }else if(obj.event === 'search'){
+              search.name=$('#searchValue').val()
+              table.reload('ID-table-demo-init',{
+                  where:search,
+                  page:{
+                      curr:1,//重新从第一页开始
+                  }
+              })//表格重载
+          }
+      })
+  });
+</script>
+{% endblock %}
