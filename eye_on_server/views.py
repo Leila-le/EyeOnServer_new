@@ -301,12 +301,6 @@ def index(request):
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
-def database_show(request):
-    return render(request, "myadmin/database/databaseshow.html")
-
-
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
 def add(request):
     """加载添加页面"""
     return render(request, "myadmin/user/add.html")
