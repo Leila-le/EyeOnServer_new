@@ -1,9 +1,12 @@
 import datetime
 import logging
 
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.views import LoginView
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
@@ -18,6 +21,8 @@ from eye_on_server.models import SeverInfo, User
 from django.db.models import Max
 
 from eye_on_server.tools.send_dingtalk import send_alert_to_dingtalk
+
+logger = logging.getLogger(__name__)
 
 
 # Create your views here.
@@ -35,34 +40,48 @@ def data_to_model(request):
         name = data['name']
         license_ = data['license_name']
 
-        alerts = {'name:': name, 'license_name:': license_}
+        alerts = {'name': name, 'license_name': license_}
         alerts_data = {'name:': name, 'license_name:': license_}
         send_alert = False
 
         # 处理cpu数据
         for key, value in data['cpu'].items():
-            setattr(alerts, key, value)
+            # setattr(alerts, key, value)
+            alerts[key] = value
+        alerts['percent'] = round(alerts['percent'] * 100, 2)
+        logging.debug("alerts: %s", alerts)
 
         # 处理磁盘数据
         for key, value in data['disk'].items():
-            setattr(alerts, key, value)
-
+            # setattr(alerts, key, value)
+            alerts[key] = value
+            logging.info("alerts: %s", alerts)
+        print("disk", alerts)
+        disk_percent = round(alerts['used'] / alerts['total'] * 100, 2)
+        alerts.update({'disk_percent': disk_percent})
+        logging.debug("alerts: %s", alerts)
         # 处理内存数据
         for key, value in data['memory'].items():
-            setattr(alerts, key, value)
+            # setattr(alerts, key, value)
+            alerts[key] = value
+        memory_percent = round(alerts['used_physics'] / alerts['total_physics'] * 100, 2)
+        swap_percent = round(alerts['used_swap'] / alerts['total_swap'] * 100, 2)
+        alerts.update({'memory_percent': memory_percent})
+        alerts.update({'swap_percent': swap_percent})
+        logging.debug("alerts: %s", alerts)
 
-        if alerts['cpu_percent'] > 70:
-            alerts_data['cpu_percent'] = alerts['cpu_percent']
+        if alerts['percent'] > 70:
+            alerts_data['CPU使用率: '] = alerts['percent']
             send_alert = True
         if alerts['memory_percent'] > 80:
-            alerts_data['memory_percent'] = alerts['memory_percent']
+            alerts_data['内存使用率: '] = alerts['memory_percent']
             send_alert = True
         if alerts['disk_percent'] > 80:
-            alerts_data['disk_percent'] = alerts['disk_percent']
+            alerts_data['磁盘使用率: '] = alerts['disk_percent']
             send_alert = True
 
         alerts['time'] = formatted_datetime
-        alerts_data['time'] = alerts['time']
+        alerts_data['时间: '] = alerts['time']
         if send_alert:
             send_alert_to_dingtalk("资源使用预警:\n", alerts_data)
 
@@ -99,7 +118,7 @@ def data_to_json(request):
                     'name': latest_record.name,
                     'license_name': latest_record.license_name,
                     'memory': latest_record.memory_percent,
-                    'cpu': latest_record.cpu_percent,
+                    'cpu': latest_record.percent,
                     'disk': latest_record.disk_percent,
                     'joinTime': latest_record.time
                 }
@@ -117,7 +136,7 @@ def data_to_json(request):
 
 @login_required
 def sever_list(request):
-    return render(request, 'web/ServerList.html')
+    return render(request, 'eye_on_server/web/ServerList.html')
 
 
 # 用于获取数据库中唯一的license_name\name列表
@@ -140,7 +159,7 @@ def get_draw_line(unique_license_names, unique_names):
             if server_info_list.exists():
                 disk_percent = server_info_list.values('disk_percent').last()
                 x_time = [info.time for info in server_info_list]
-                y_cpu = [info.cpu_percent for info in server_info_list]
+                y_cpu = [info.percent for info in server_info_list]
                 y_memory = [info.memory_percent for info in server_info_list]
                 chart = Chart()
                 value_disk = disk_percent.get("disk_percent") if disk_percent else None
@@ -161,7 +180,7 @@ def draw_lines(request):
     # 获取模型对象列表并陈列
     data_lines, reversed_list = get_draw_line(unique_license_names, unique_names)
 
-    return render(request, "web/ServerChart.html",
+    return render(request, "eye_on_server/web/ServerChart.html",
                   {"data_lines": data_lines, "disk_percent": reversed_list, "unique_license_json": unique_license_json})
 
 
@@ -177,8 +196,9 @@ def search(request):
         result = SeverInfo.objects.filter(license_name=search_value).exists()
         if result:
             data_lines, reversed_list = get_draw_line(search_list, search_name)
-            return render(request, "web/search.html", {"data_lines": data_lines, "disk_percent": reversed_list,
-                                                       "unique_license_json": unique_license_json})
+            return render(request, "eye_on_server/web/search.html",
+                          {"data_lines": data_lines, "disk_percent": reversed_list,
+                           "unique_license_json": unique_license_json})
 
 
 @login_required
@@ -186,7 +206,7 @@ def search(request):
 def save_theme(request):
     theme = request.GET.get('theme', 'default')
     context = {'theme': theme}
-    return render(request, 'web/base.html', context)
+    return render(request, 'eye_on_server/web/base.html', context)
 
 
 @login_required
@@ -196,7 +216,7 @@ def home(request):
     infos = SeverInfo.objects.all().order_by('-time')
     prefer_dark_mode = request.session.get('prefer_dark_mode', False)  # 从会话中获取主题选项，默认为 False
     context = {'infos': infos, 'prefer_dark_mode': prefer_dark_mode}
-    return render(request, "web/base.html", locals())
+    return render(request, "eye_on_server/web/base.html", locals())
 
 
 @login_required
@@ -207,253 +227,27 @@ def systems(request):
         infos = SeverInfo.objects.filter(license_name=license_name).order_by('-time')
         info = infos.first()
         context = {'info': info}
-        return render(request, "web/system.html", context=context)
+        return render(request, "eye_on_server/web/system.html", context=context)
 
 
-# 初始话登陆页面
-@login_required
-def index(request):
-    return render(request, "myadmin/user/index.html")
-
-
-# 加载登录页面
-def login_(request):
-    return render(request, "myadmin/index/login.html")
-
-
-# 执行登录
-@csrf_exempt
-def do_login(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(username=username, password=password)
-        logging.debug('users %s', user)
-        if user is not None:
-            if ~user.is_active:
-                # 处理用户状态为不活动的情况
-                return JsonResponse({'status': 'stop_user', 'message': '账号已被禁用!'})
-            else:
-                # 处理登录成功的情况
-                login(request, user)
-                request.session['adminuser'] = user.toDict()
-                if user.is_superuser:  # 为管理员则进入管理员页面
-                    return JsonResponse({'status': 'manage_user', 'message': '登录成功'})
-                elif user.is_staff:  # 为普通用户则进入普通页面
-                    return JsonResponse({'status': 'common_user', 'message': '登录成功'})
-        else:
-            # 处理用户为 None 的情况
-            error_message = '账号或密码错误!'
-            return JsonResponse({'message': error_message})
-    return HttpResponse('Invalid request')
+class MyLoginView(LoginView):
+    # 登陆成功后要跳转的页面URL
+    def get_success_url(self):
+        return '/web/'
 
 
 # 执行退出
-def logout(request):
+def logout_view(request):
     logout(request)
-    return redirect('myadmin_login')
+    return redirect('login')
 
 
-# 用于将数据表中的数据转为json格式,传至对应的html页面中的table中
-def get_data(request):  # 表格展示内容
-    queryset = User.objects.filter(status__lt=9)
-    status_mapping = {
-        1: '正常',
-        2: '禁停',
-        6: '管理员',
-    }
-    # 获取请求中的页码和每页数量参数
-    page = request.GET.get('page', 1)
-    limit = request.GET.get('limit', 10)
+# 添加新用户
+@receiver(post_save, sender=User)
+def handle_user_registration(sender, instance, created, **kwargs):
+    if created:
+        # 这里可以处理新注册用户的逻辑
+        password = instance.password  # 获取注册页面输入的密码
+        instance.set_password(password)  # 设置密码
+        instance.save()  # 保存用户对象
 
-    paginator = Paginator(queryset, limit)
-
-    try:
-        page_data = paginator.page(page)
-    except PageNotAnInteger:
-        page_data = paginator.page(1)
-    except EmptyPage:
-        page_data = paginator.page(paginator.num_pages)
-    data = [{
-        'id': item.id,
-        'username': item.username,
-        'nickname': item.nickname,
-        'status': status_mapping.get(item.status, '未知状态'),
-        'create_at': datetime.datetime.strftime(item.create_at, "%Y-%m-%d %H:%M:%S"),
-        'update_at': datetime.datetime.strftime(item.update_at, "%Y-%m-%d %H:%M:%S"),
-
-    } for item in page_data]
-
-    return JsonResponse({
-        'code': 0,
-        'msg': '',
-        'count': paginator.count,
-        'data': data
-    })
-
-
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def index(request):
-    """浏览信息"""
-    return render(request, "myadmin/user/index.html")
-
-
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def add(request):
-    """加载添加页面"""
-    return render(request, "myadmin/user/add.html")
-
-
-def check_username(request):
-    """检查用户名是否已存在"""
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        logging.debug('username: %s', username)
-        # 检查用户名是否已存在
-        if User.objects.filter(username=username).exists():
-            logging.debug("用户已存在")
-            return JsonResponse(True, safe=False)  # 用户名已存在，返回 True
-        else:
-            logging.debug('当前用户名还未被注册,可以继续.....')
-            return JsonResponse(False, safe=False)
-    return JsonResponse({}, safe=False)
-
-
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def insert(request):
-    if request.method == 'POST':
-        # form = UserCreationForm(request.POST)
-        # logging.debug('form: %s', form)
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        nickname = request.POST.get('nickname')
-        status = request.POST.get('status')
-        logging.debug('status %s', status)
-        # 检查用户名是否已存在
-        if User.objects.filter(username=username).exists():
-            return HttpResponse("Username already exists")
-        # 创建用户
-        try:
-            if User.is_staff:
-                User.objects.create_user(username=username, password=password, nickname=nickname, status=status,
-                                         is_staff=1)
-                logging.debug('成功创建普通账号')
-            elif User.is_superuser:
-                User.objects.create_user(username=username, password=password, nickname=nickname, status=status,
-                                         is_superuser=1)
-                logging.debug('成功创建管理员账号')
-            return HttpResponse("User created successfully")
-        except Exception as e:
-            return HttpResponse(f"Failed to create user: {str(e)}")
-    else:
-        return HttpResponse("Invalid request")  # 返回一个适当的响应
-
-
-@login_required
-@csrf_exempt
-@user_passes_test(lambda u: u.is_superuser)
-def delete(request):
-    """删除信息"""
-    if request.method == 'POST':
-        uid = request.POST.get('id')
-        try:
-            User.objects.filter(id=uid).delete()
-            # 返回响应给前端，确认删除成功
-            response = {'message': '删除成功'}
-        except Exception as err:
-            logging.debug('err: %s', err)
-            # context = {"info": "删除失败"}
-            response = {'message': '删除失败'}
-        #
-        # # return JsonResponse(context)
-        # return render(request, "myadmin/info.html", context)
-        return JsonResponse(response, status=200)
-
-
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def edit(request):
-    """加载编辑信息页面"""
-    if request.method == 'GET':
-        uid = request.GET.get('id')
-        try:
-            ob = User.objects.get(id=uid)
-            context = {"user": ob}
-            return render(request, "myadmin/user/edit.html", context)
-        except Exception as err:
-            context = {"info": err}
-            return render(request, "myadmin/info.html", context)
-    else:
-        return HttpResponse("Invalid request")  # 返回一个适当的响应
-
-
-@csrf_exempt
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def update(request):
-    """执行编辑信息"""
-    if request.method == 'POST':
-        uid = request.POST.get('id')
-        logging.debug('uid: %s', uid)
-        try:
-            ob = User.objects.get(id=uid)
-            ob.nickname = request.POST['nickname']
-            ob.status = request.POST['status']
-            if ob.status == '6':
-                ob.is_superuser = 1
-            if ob.status == '1':
-                ob.is_staff = 1
-            ob.update_at = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            ob.save()
-            context = {"info": "修改成功！"}
-        except Exception as err:
-            logging.info('err %s', err)
-            context = {"info": "修改失败"}
-        return render(request, "myadmin/info.html", context)
-    else:
-        return HttpResponse("Invalid request")  # 返回一个适当的响应
-
-
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def reset_pass(request):
-    """加载添加页面"""
-    if request.method == 'GET':
-        uid = request.GET.get('id')
-        try:
-            ob = User.objects.get(id=uid)
-            context = {"user": ob}
-            return render(request, "myadmin/user/resetpassword.html", context)
-        except Exception as err:
-            context = {"info": err}
-            return render(request, "myadmin/info.html", context)
-    else:
-        return HttpResponse("Invalid request")  # 返回一个适当的响应
-
-
-# @csrf_exempt
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def reset_password(request):
-    """加载重置会员密码信息页面"""
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        new_password = request.POST.get('new_password')
-
-        new_password = make_password(new_password)
-
-        try:
-            ob = User.objects.get(username=username)
-            ob.password = new_password
-            ob.save()
-            context = {"info": "修改成功！"}
-        except Exception as err:
-            logging.debug('err: %s', err)
-            context = {"info": "修改失败"}
-        return JsonResponse(context)
-        # return render(request,'myadmin/info.html', context)
-    else:
-        return HttpResponse("Invalid request")  # 返回一个适当的响应

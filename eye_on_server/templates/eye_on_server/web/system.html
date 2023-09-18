@@ -15,10 +15,10 @@
       <div style="padding: 32px;">
           <p>系统: {{ info.name }}</p><br>
           <p>许可: {{ info.license_name }}</p><br>
-          <p>CPU核数: {{ info.cpu_count }}</p><br>
-          <p>物理总内存: {{ info.memory_total_physics }}</p><br>
-          <p>系统运行时间: {{ info.memory_uptime }}</p><br>
-          <p>当前运行的进程数: {{ info.memory_processes }}</p><br>
+          <p>CPU核数: {{ info.count }}</p><br>
+          <p>物理总内存: {{ info.total_physics }}</p><br>
+          <p>系统运行时间: {{ info.uptime }}</p><br>
+          <p>当前运行的进程数: {{ info.processes }}</p><br>
       </div>
     </div>
     <br>
@@ -43,14 +43,14 @@
       </thead>
       <tbody>
         <tr>
-          <td>{{ info.cpu_idle}}</td>
-          <td>{{ info.cpu_user}}</td>
-          <td>{{ info.cpu_system}}</td>
-          <td>{{ info.cpu_iowait}}</td>
-          <td>{{ info.cpu_irq}}/{{ info.cpu_softirq}}</td>
-          <td>{{ info.cpu_steal}}</td>
+          <td>{{ info.idle}}</td>
+          <td>{{ info.user}}</td>
+          <td>{{ info.system}}</td>
+          <td>{{ info.iowait}}</td>
+          <td>{{ info.irq}}/{{ info.cpu_softirq}}</td>
+          <td>{{ info.steal}}</td>
           <td><div class="layui-progress" lay-showpercent="true">
-                <div class="layui-progress-bar" lay-percent="{{ info.cpu_percent}}%"></div>
+                <div class="layui-progress-bar" lay-percent="{{ info.percent}}%"></div>
               </div>
           </td>
         </tr>
@@ -77,9 +77,9 @@
       </thead>
       <tbody>
         <tr>
-            <td>{{ info.memory_total_physics}}</td>
-            <td>{{ info.memory_used_physics}}</td>
-            <td>{{ info.memory_free_physics }}</td>
+            <td>{{ info.total_physics}}</td>
+            <td>{{ info.used_physics}}</td>
+            <td>{{ info.free_physics }}</td>
             <td><div class="layui-progress" lay-showpercent="true">
                 <div class="layui-progress-bar" lay-percent="{{ info.memory_percent}}%"></div>
               </div>
@@ -108,11 +108,11 @@
       </thead>
       <tbody>
         <tr>
-            <td>{{ info.memory_total_swap}}</td>
-            <td>{{ info.memory_used_swap}}</td>
-            <td>{{ info.memory_free_swap}}</td>
+            <td>{{ info.total_swap}}</td>
+            <td>{{ info.used_swap}}</td>
+            <td>{{ info.free_swap}}</td>
             <td><div class="layui-progress" lay-showpercent="true">
-                <div class="layui-progress-bar" lay-percent="{{ info.memory_swap_percent}}%"></div>
+                <div class="layui-progress-bar" lay-percent="{{ info.swap_percent}}%"></div>
               </div>
             </td>
         </tr>
@@ -140,10 +140,10 @@
           </thead>
           <tbody>
             <tr>
-              <td>{{ info.disk_mount_point}}</td>
-              <td>{{ info.disk_total}}</td>
-              <td>{{ info.disk_used}}</td>
-              <td>{{ info.disk_free }}</td>
+              <td>{{ info.mount_point}}</td>
+              <td>{{ info.total}}</td>
+              <td>{{ info.used}}</td>
+              <td>{{ info.free }}</td>
               <td><div class="layui-progress" lay-showpercent="true">
                     <div class="layui-progress-bar" lay-percent="{{ info.disk_percent}}%"></div>
                   </div>
@@ -157,7 +157,7 @@
 </div>
 <div class="layui-footer"></div>
 
-<script src="{% static 'js/layui.js' %}"></script>
+<script src="{% static 'eye_on_server/js/layui.js' %}"></script>
 <script>
     let progressBarList = document.querySelectorAll('.layui-progress-bar');
     progressBarList.forEach(function (progressBar){
