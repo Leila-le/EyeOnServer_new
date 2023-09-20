@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-tr+(k=n(ta*d)&dln6ywy=nkjk#+rn@vr552jvut07#+g!w$ps
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*',]
+ALLOWED_HOSTS = ['*', ]
 
 # Application definition
 
@@ -102,7 +102,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -113,7 +113,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 # STATIC_ROOT = BASE_DIR / 'static_root'
-STATIC_ROOT = BASE_DIR / 'static'
+# STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [BASE_DIR / 'eye_on_server/static']
 
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -155,6 +155,11 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        # 'django': {
+        #     'handlers': ['console', 'log_file'],
+        #     'propagate': True,
+        #     'level': 'DEBUG',  # 修改日志级别为 DEBUG
+        # },
         'lafdict': {
             'handlers': ['console', "log_file"],
             'propagate': True,

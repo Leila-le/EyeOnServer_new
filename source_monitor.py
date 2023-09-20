@@ -29,10 +29,10 @@ while True:
     # 处理新文件
     with open('media/json/shortman.json', 'r') as f:
         data = eval(f.read())
-    # url = 'http://110.43.54.174/data/'
-    url = 'http://192.168.199.42:8000/web/data/'
+    url = 'http://192.168.199.42:8000/data/'
+    # url = 'http://110.43.54.174/shortman/'
     requests.post(url, json=data)
     print('type-data', type(data))
     print("data:", data)
     # 休眠一段时间后再次检查文件夹
-    time.sleep(15)
+    time.sleep(2)

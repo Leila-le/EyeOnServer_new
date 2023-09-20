@@ -4,12 +4,6 @@
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/login.css" %}">
 {{ form.media }}
 {% endblock %}
-{% block branding %}
-<h1 id="site-name">Login</h1>
-{% if user.is_anonymous %}
-  {% include "admin/color_theme_toggle.html" %}
-{% endif %}
-{% endblock %}
 
 {% block bodyclass %}{{ block.super }} login{% endblock %}
 
@@ -49,7 +43,7 @@
 </p>
 {% endif %}
 
-<form action="{% url 'login' %}" method="post" id="login-form">{% csrf_token %}
+<form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
   <div class="form-row">
     {{ form.username.errors }}
     {{ form.username.label_tag }} {{ form.username }}
@@ -67,7 +61,7 @@
   {% endif %}
   <div class="submit-row">
     <input type="submit" value="{% translate 'Log in' %}">
-      <p>普通账号:user 密码:user123456 </p>
+      <p>管理账号:admin 密码:admin123456 </p>
   </div>
 </form>
 

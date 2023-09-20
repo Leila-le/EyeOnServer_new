@@ -1,11 +1,11 @@
 import datetime
 import logging
 
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+
 from django.contrib.auth.views import LoginView
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
@@ -20,7 +20,7 @@ from eye_on_server.models import SeverInfo, User
 
 from django.db.models import Max
 
-from eye_on_server.tools.send_dingtalk import send_alert_to_dingtalk
+from eye_on_server.tools.send_dingtalk import process_message
 
 logger = logging.getLogger(__name__)
 
@@ -31,62 +31,74 @@ logger = logging.getLogger(__name__)
 def data_to_model(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        logging.debug("type-datas: %s", type(data))
+        # logging.debug("type-datas: %s", type(data))
 
         received_time = datetime.datetime.now()
         formatted_datetime = received_time.strftime("%Y-%m-%d %H:%M:%S")
-        logging.debug('received_time', formatted_datetime)
+        # logging.debug('received_time', formatted_datetime)
 
         name = data['name']
         license_ = data['license_name']
 
         alerts = {'name': name, 'license_name': license_}
-        alerts_data = {'name:': name, 'license_name:': license_}
-        send_alert = False
 
         # 处理cpu数据
         for key, value in data['cpu'].items():
-            # setattr(alerts, key, value)
             alerts[key] = value
         alerts['percent'] = round(alerts['percent'] * 100, 2)
         logging.debug("alerts: %s", alerts)
 
         # 处理磁盘数据
         for key, value in data['disk'].items():
-            # setattr(alerts, key, value)
             alerts[key] = value
             logging.info("alerts: %s", alerts)
-        print("disk", alerts)
         disk_percent = round(alerts['used'] / alerts['total'] * 100, 2)
         alerts.update({'disk_percent': disk_percent})
         logging.debug("alerts: %s", alerts)
         # 处理内存数据
         for key, value in data['memory'].items():
-            # setattr(alerts, key, value)
             alerts[key] = value
         memory_percent = round(alerts['used_physics'] / alerts['total_physics'] * 100, 2)
         swap_percent = round(alerts['used_swap'] / alerts['total_swap'] * 100, 2)
         alerts.update({'memory_percent': memory_percent})
         alerts.update({'swap_percent': swap_percent})
         logging.debug("alerts: %s", alerts)
-
-        if alerts['percent'] > 70:
-            alerts_data['CPU使用率: '] = alerts['percent']
-            send_alert = True
-        if alerts['memory_percent'] > 80:
-            alerts_data['内存使用率: '] = alerts['memory_percent']
-            send_alert = True
-        if alerts['disk_percent'] > 80:
-            alerts_data['磁盘使用率: '] = alerts['disk_percent']
-            send_alert = True
-
         alerts['time'] = formatted_datetime
-        alerts_data['时间: '] = alerts['time']
-        if send_alert:
-            send_alert_to_dingtalk("资源使用预警:\n", alerts_data)
-
         SeverInfo.objects.create(**alerts)
 
+        # 设置阈值，用于比较
+        cpu_threshold = 80
+        memory_threshold = 80
+        disk_threshold = 80
+        messages = []
+        flag = False
+
+        if alerts['percent'] > cpu_threshold:
+            message = f"系统: {alerts['name']}\n许可:{alerts['license_name']}\n时间:{alerts['time']}\n" \
+                      f"CPU使用率: {alerts['percent']}%"
+            messages.append(message)
+            flag = True
+
+        if alerts['memory_percent']> memory_threshold:
+            if flag:
+                message = f"内存使用率: {alerts['memory_percent']}%"
+
+            else:
+                message = f"系统: {alerts['name']}\n许可:{alerts['license_name']}\n时间:{alerts['time']}\n" \
+                          f"内存使用率: {alerts['memory_percent']}%"
+            messages.append(message)
+            flag = True
+
+        if alerts['disk_percent'] > disk_threshold:
+            if flag:
+                message = f"\n磁盘使用率: {alerts['disk_percent']}%"
+            else:
+                message = f"系统: {alerts['name']}\n许可:{alerts['license_name']}\n时间:{alerts['time']}\n" \
+                          f"磁盘使用率: {alerts['disk_percent']}%"
+            messages.append(message)
+        # 将当前收集到的超过阈值的内容传至send_alert_to_dingtalk进行发送钉钉消息准备
+        if messages:
+            process_message("".join(messages))
         return HttpResponse("ok")
 
 
@@ -246,8 +258,7 @@ def logout_view(request):
 @receiver(post_save, sender=User)
 def handle_user_registration(sender, instance, created, **kwargs):
     if created:
-        # 这里可以处理新注册用户的逻辑
+        # 处理新注册用户的逻辑
         password = instance.password  # 获取注册页面输入的密码
         instance.set_password(password)  # 设置密码
         instance.save()  # 保存用户对象
-

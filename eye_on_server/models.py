@@ -43,64 +43,10 @@ class SeverInfo(models.Model):
     used = models.CharField(max_length=30, blank=True, null=True)
     disk_percent = models.CharField(max_length=30, blank=True, null=True)
 
+    alter_query = models.BooleanField(default=False)
 
-# class UserManager(BaseUserManager):
-#
-#     def create_user(self, username, password=None, **extra_fields):
-#         user = self.model(username=username, **extra_fields)
-#         user.set_password(password)
-#         user.save(using=self._db)
-#         return user
-#
-#     def create_superuser(self, username, password=None, **extra_fields):
-#         extra_fields.setdefault('is_staff', True)
-#         extra_fields.setdefault('is_superuser', True)
-#
-#         if extra_fields.get('is_staff') is not True:
-#             raise ValueError('Superuser must have is_staff=True.')
-#         if extra_fields.get('is_superuser') is not True:
-#             raise ValueError('Superuser must have is_superuser=True.')
-#
-#         return self.create_user(username, password, **extra_fields)
-#
-#
-# class User(AbstractBaseUser):
-#     username = models.CharField(max_length=50, unique=True)
-#     nickname = models.CharField(max_length=50, null=True)
-#
-#     create_at = models.DateTimeField(auto_now_add=True)
-#     update_at = models.DateTimeField(auto_now=True)
-#
-#     is_staff = models.BooleanField(default=False)
-#     is_superuser = models.BooleanField(default=False)
-#     is_active = models.BooleanField(default=True)
-#
-#     objects = UserManager()
-#
-#     USERNAME_FIELD = 'username'
-#
-#     def toDict(self):
-#         return {
-#             'id': self.id,
-#             'username': self.username,
-#             'nickname': self.nickname,
-#             'create_at': self.create_at.strftime('%Y-%m-%d %H:%M:%S'),
-#             'update_at': self.update_at.strftime('%Y-%m-%d %H:%M:%S')
-#         }
-#
-#     def has_perm(self, perm, obj=None):
-#         # 实现判断用户是否具有特定权限的方法
-#         return self.is_superuser
-#
-#     def has_module_perms(self, app_label):
-#         # 实现判断用户是否具有特定应用权限的方法
-#         return self.is_superuser
-#
-#     class Meta:
-#         db_table = "user"
 
 class User(AbstractUser):
     nickname = models.CharField(max_length=50, null=True)
     create_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
-

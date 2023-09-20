@@ -22,6 +22,10 @@ class Chart(object):
                     splitline_opts=opts.SplitLineOpts(is_show=True),
                     name='%',
                 ),
+                datazoom_opts=[
+                    opts.DataZoomOpts(range_start=0, range_end=100),  # 设置底部缩放条
+                    opts.DataZoomOpts(type_="inside", range_start=0, range_end=100),  # 设置图内滚轮可缩放
+                ],
             )
             .add_xaxis(xaxis_data=x_data)
             .add_yaxis(
