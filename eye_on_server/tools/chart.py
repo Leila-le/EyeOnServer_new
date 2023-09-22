@@ -1,14 +1,24 @@
 from pyecharts.charts import Line
 from pyecharts import options as opts
-from pyecharts.charts import Timeline
-# CurrentConfig.ONLINE_HOST = 'http://192.168.199.42:8000/static/js/echarts/'
 # CurrentConfig.ONLINE_HOST = 'http://127.0.0.1:8000/static/js/echarts/'
 
 
 class Chart(object):
-    # 折线图
-    def lines_chart(self, title, chart_id, x_data, y_data, y2_data, disk):
-        t1 = Timeline()
+    """
+    图标类
+    Methods:
+        lines_chart:生成折线图的HTML代码
+    """
+    def lines_chart(self, title, chart_id, x_data, y_data, y2_data):
+        """
+        生成折线图的HTML代码
+        :param title:折线图的标题
+        :param chart_id: 折线图的id
+        :param x_data: x轴数据列表
+        :param y_data: y轴数据列表(CPU)
+        :param y2_data: 第二个y轴数据列表(内存)
+        :return: 包含折线图的HTML代码
+        """
         line_ = (
             Line(opts.InitOpts(width='100%', height='100%'))
             .set_global_opts(
@@ -48,5 +58,3 @@ class Chart(object):
         )
         line_.chart_id = chart_id
         return line_.render_embed()  # 返回框架,便于植入home.html中
-
-

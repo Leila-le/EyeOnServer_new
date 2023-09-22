@@ -21,7 +21,7 @@ from eye_on_server import views
 from eye_on_server.views import MyLoginView
 
 urlpatterns = [
-    path('myadmin/', admin.site.urls),
+    path('myadmin/', admin.site.urls),  # 管理员页面
     path('data/', views.data_to_model, name='data'),  # 将数据存入数据库中,并将超过阈值的内容传至钉钉
 
     path('web/', views.draw_lines, name='ServerChart'),  # 用于展示cpu\内存使用折线图以及磁盘当前使用率
@@ -29,8 +29,8 @@ urlpatterns = [
     path('web/ServerList/', views.sever_list, name='ServerList'),  # 各系统当前最新资源使用数据
     path('web/system/', views.systems, name='system'),  # 系统详细信息展示
     path('web/search/', views.search, name='search'),  # 搜索
-
-    path('change-password/', PasswordChangeView.as_view(), name='password_change'),
-    path('accounts/login/', MyLoginView.as_view(), name='login'),
-    path('logout', views.logout_view, name="logout"),
+    path('web/day-data/', views.day_data, name='day-data'),
+    path('change-password/', PasswordChangeView.as_view(), name='password_change'),  # 修改密码
+    path('accounts/login/', MyLoginView.as_view(), name='login'),  # 登陆
+    path('logout', views.logout_view, name="logout"),  # 退出/注销
 ]

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="db" uuid="a43e9682-e616-4e33-aee0-5476860ed1b4">
+    <data-source source="LOCAL" name="db" uuid="078ca1d9-2bc0-419b-a573-19872cc925a8">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
@@ -13,7 +13,7 @@
         </library>
       </libraries>
     </data-source>
-    <data-source source="LOCAL" name="Django default" uuid="6a27fbc7-64d6-49a0-b30a-61055993ecf0">
+    <data-source source="LOCAL" name="Django default" uuid="d454e975-8885-4693-9fa8-729744c1c8fe">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <imported>true</imported>

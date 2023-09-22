@@ -45,3 +45,4 @@ wcwidth==0.2.6
 Werkzeug==2.3.6
 
 watchdog~=3.0.0
+APScheduler~=3.10.4

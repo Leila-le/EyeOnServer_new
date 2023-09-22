@@ -73,29 +73,10 @@
             });
         }
       });
-      {#table.on('edit(test)', function(obj){ //注：edit是固定事件名，test是table原始容器的属性 lay-filter="对应的值"#}
-      {#    console.log(obj.value); //得到修改后的值#}
-      {#    console.log(obj.field); //当前编辑的字段名#}
-      {#    console.log(obj.data); //所在行的所有相关数据#}
-      {#    $.ajax({#}
-      {#        url:'{% url 'remark' %}',#}
-      {#        type:'POST',#}
-      {#        data:{'value':obj.value,'license_name':obj.data.license_name,'name':obj.data.name},#}
-      {#        success:function (data){#}
-      {#            layer.msg('编辑成功', {icon: 1});#}
-      {#        },#}
-      {#        error:function (xhr, status, error){#}
-      {#              console.error("Error:", error);#}
-      {#        }#}
-      {#    })#}
-
-      {# });#}
-
       // 触发表格复选框选择
       table.on('checkbox(test)', function(obj){
         console.log(obj)
       });
-
       // 触发表格单选框选择
       table.on('radio(test)', function(obj){
         console.log(obj)

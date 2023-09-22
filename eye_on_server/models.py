@@ -1,13 +1,14 @@
-from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import AbstractUser, Permission, PermissionsMixin
 from django.db import models
+from django.utils import timezone
 
 
 # Create your models here.
 class SeverInfo(models.Model):
     name = models.CharField(max_length=30, blank=True, null=True)
     license_name = models.CharField(max_length=30, blank=True, null=True)
-    time = models.CharField(max_length=30, blank=True, null=True)
+    time = models.DateTimeField(auto_now_add=True)
     # 获取CPU使用情况
     guest = models.CharField(max_length=30, blank=True, null=True)
     guest_nice = models.CharField(max_length=30, blank=True, null=True)
@@ -23,7 +24,7 @@ class SeverInfo(models.Model):
     total_idle = models.CharField(max_length=30, blank=True, null=True)
     user = models.CharField(max_length=30, blank=True, null=True)
     count = models.CharField(max_length=5, blank=True, null=True)
-
+    loadavg = models.CharField(max_length=5, blank=True, null=True)
     # 获取内存使用情况
     free_physics = models.CharField(max_length=30, blank=True, null=True)
     free_swap = models.CharField(max_length=30, blank=True, null=True)
@@ -45,8 +46,17 @@ class SeverInfo(models.Model):
 
     alter_query = models.BooleanField(default=False)
 
+    @property
+    def localized_time(self):
+        return self.time.astimezone(timezone.get_current_timezone())
+
 
 class User(AbstractUser):
     nickname = models.CharField(max_length=50, null=True)
     create_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def localized_time(self):
+        return self.create_at.astimezone(timezone.get_current_timezone()), self.update_at.astimezone(
+            timezone.get_current_timezone())
