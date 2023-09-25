@@ -29,7 +29,8 @@ urlpatterns = [
     path('web/ServerList/', views.sever_list, name='ServerList'),  # 各系统当前最新资源使用数据
     path('web/system/', views.systems, name='system'),  # 系统详细信息展示
     path('web/search/', views.search, name='search'),  # 搜索
-    path('web/day-data/', views.day_data, name='day-data'),
+    path('web/DayChart/', views.day_data, name='DayChart'),
+
     path('change-password/', PasswordChangeView.as_view(), name='password_change'),  # 修改密码
     path('accounts/login/', MyLoginView.as_view(), name='login'),  # 登陆
     path('logout', views.logout_view, name="logout"),  # 退出/注销

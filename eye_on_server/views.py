@@ -1,6 +1,5 @@
 import datetime
 import logging
-import time
 
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -8,19 +7,25 @@ from django.contrib.auth.views import LoginView
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.shortcuts import render, redirect
-from django.utils import timezone
+
 from django.views.decorators.csrf import csrf_exempt
 from eye_on_server.tools.chart import Chart
 import json
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse, HttpResponse
 from eye_on_server.models import SeverInfo, User
-from django.db.models import Max, Q
-from eye_on_server.tools.send_dingtalk import process_message
+from django.db.models import Max
+
+from eye_on_server.tools.send_dingtalk import process_message, schedule_send_alert_am9
 
 logger = logging.getLogger(__name__)
 
+bulletin = False
 
+current_day = 0
+
+reversed_name = []
+reversed_license_name = []
 @csrf_exempt
 def data_to_model(request):
     """
@@ -41,6 +46,7 @@ def data_to_model(request):
         alerts['percent'] = round(alerts['percent'] * 100, 2)
         logging.debug("alerts: %s", alerts)
         alerts['loadavg'] = alerts['total_active'] / (alerts['total_active'] + alerts['total_idle'])
+        print('loadavg', alerts['loadavg'])
         # 处理磁盘数据
         for key, value in data['disk'].items():
             alerts[key] = value
@@ -58,74 +64,51 @@ def data_to_model(request):
         logging.debug("alerts: %s", alerts)
         # 将alerts字典存入数据库的ServerInfo模型中
         SeverInfo.objects.create(**alerts)
+        get_warning(alerts)
+        schedule_send_alert_am9()
 
-        received_time = datetime.datetime.now()
-        formatted_datetime = received_time.strftime("%Y-%m-%d %H:%M:%S")
-        # 设置阈值，用于比较
-        cpu_threshold = 80
-        memory_threshold = 80
-        disk_threshold = 80
-        # 初始化消息列表和标志变量
-        messages = []
-        flag = False
-        # 检查CPU使用率是否超过阈值
-        if alerts['percent'] > cpu_threshold:
-            message = f"系统: {alerts['name']}\n许可:{alerts['license_name']}\n时间:{formatted_datetime}\n" \
-                      f"CPU使用率: {alerts['percent']}%"
-            messages.append(message)
-            flag = True
-        # 检查内存使用率是否超过阈值
-        if alerts['memory_percent'] > memory_threshold:
-            if flag:
-                message = f"内存使用率: {alerts['memory_percent']}%"
-
-            else:
-                message = f"系统: {alerts['name']}\n许可:{alerts['license_name']}\n时间:{formatted_datetime}\n" \
-                          f"内存使用率: {alerts['memory_percent']}%"
-            messages.append(message)
-            flag = True
-        # 检查磁盘使用率是否超过阈值
-        if alerts['disk_percent'] > disk_threshold:
-            if flag:
-                message = f"\n磁盘使用率: {alerts['disk_percent']}%"
-            else:
-                message = f"系统: {alerts['name']}\n许可:{alerts['license_name']}\n时间:{formatted_datetime}\n" \
-                          f"磁盘使用率: {alerts['disk_percent']}%"
-            messages.append(message)
-        # 将当前收集到的超过阈值的内容传至send_alert_to_dingtalk进行发送钉钉消息准备
-        if messages:
-            process_message("".join(messages))
         return HttpResponse("ok")
 
 
-def get_message():
-    infos = SeverInfo.objects.all()
-    unique_license_names, _, unique_names = get_unique_license()
-    # 遍历唯一的许可证名称和服务器名称
-    for unique_license_name in unique_license_names:
-        for unique_name in unique_names:
-            # 查询服务器信息
-            server_info_list = SeverInfo.objects.filter(license_name=unique_license_name, name=unique_name).order_by(
-                'time')
-            current_time = timezone.now()  # 获取当前时间戳
-            # 计算5分钟前的时间
-            five_minutes_ago = current_time - datetime.timedelta(minutes=5)
-            fifteen_minutes_ago = current_time - datetime.timedelta(minutes=5)
-            # 执行查询，获取在5分钟前之后创建的数据库信息
-            results_five = server_info_list.objects.filter(Q(created_at__gte=five_minutes_ago))
-            results_fifteen = server_info_list.objects.filter(Q(created_at__gte=fifteen_minutes_ago))
-            for info in server_info_list:
-                base_info = f"""> 您的云服务器已运行-{info['uptime']}，
-                机器负载情况为(最近1、5、15分钟)：{info['loadavg'], results_five['loadavg'], results_fifteen['loadavg']}
-                        - 目前CPU使用率为：{info['percent']}%，
-                        - 系统运行内存使用率为：{info['memory_percent']}%，
-                        - 剩余可用运行内存为：{info['free_physics'] / (1024 * 1024 * 1024)}GiB，
-                        - 系统存储内存使用率为：{info['disk_percent']}%，
-                        - 剩余可用存储内存为：{info['free'] / (1024 * 1024 * 1024)}GiB
-                        <br>**{'机器CPU使用率正常' if info['percent'] <= 80 else '机器CPU使用率过高，可能触发预警'}**
-                        <br>**{'机器内存使用率正常' if info['memory_percent'] <= 80 else '机器CPU使用率过高，可能触发预警'}**
-                        <br>**{'机器磁盘使用率正常' if info['disk_percent'] <= 80 else '机器CPU使用率过高，可能触发预警'}**
-                        """
+def get_warning(alerts):
+    # infos = SeverInfo.objects.all()
+    # for alerts in infos:
+    received_time = datetime.datetime.now()
+    formatted_datetime = received_time.strftime("%Y-%m-%d %H:%M:%S")
+    # 设置阈值，用于比较
+    cpu_threshold = 80
+    memory_threshold = 80
+    disk_threshold = 80
+    # 初始化消息列表和标志变量
+    messages = []
+    flag = False
+    # 检查CPU使用率是否超过阈值
+    if alerts['percent'] > cpu_threshold:
+        message = f"系统: {alerts['name']}\n许可:{alerts['license_name']}\n时间:{formatted_datetime}\n" \
+                  f"CPU使用率: {alerts['percent']}%"
+        messages.append(message)
+        flag = True
+    # 检查内存使用率是否超过阈值
+    if alerts['memory_percent'] > memory_threshold:
+        if flag:
+            message = f"内存使用率: {alerts['memory_percent']}%"
+
+        else:
+            message = f"系统: {alerts['name']}\n许可:{alerts['license_name']}\n时间:{formatted_datetime}\n" \
+                      f"内存使用率: {alerts['memory_percent']}%"
+        messages.append(message)
+        flag = True
+    # 检查磁盘使用率是否超过阈值
+    if alerts['disk_percent'] > disk_threshold:
+        if flag:
+            message = f"\n磁盘使用率: {alerts['disk_percent']}%"
+        else:
+            message = f"系统: {alerts['name']}\n许可:{alerts['license_name']}\n时间:{formatted_datetime}\n" \
+                      f"磁盘使用率: {alerts['disk_percent']}%"
+        messages.append(message)
+    # 将当前收集到的超过阈值的内容传至send_alert_to_dingtalk进行发送钉钉消息准备
+    if messages:
+        process_message("".join(messages))
 
 
 @login_required
@@ -198,12 +181,8 @@ def get_unique_license():
     unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
     # 从SeverInfo中获取唯一的服务器名称
     unique_name = SeverInfo.objects.values_list('name', flat=True).distinct()
-    # 将唯一的许可证名称转换为列表
-    unique_license_list = list(unique_license)
-    # 将唯一的许可证名称转换为JSON格式
-    unique_license_json = json.dumps(unique_license_list)
 
-    return unique_license, unique_license_json, unique_name
+    return unique_license, unique_name
 
 
 def get_draw_line(unique_license_names, unique_names):
@@ -215,6 +194,9 @@ def get_draw_line(unique_license_names, unique_names):
     """
     data_lines = []
     disk_percent_list = []
+    name_list = []
+    license_name_list = []
+    global reversed_name,reversed_license_name
     # 遍历唯一的许可证名称和服务器名称
     for unique_license_name in unique_license_names:
         for unique_name in unique_names:
@@ -239,9 +221,12 @@ def get_draw_line(unique_license_names, unique_names):
                 # 添加图标数据和磁盘百分比到相应列表
                 data_lines.append(data_line)
                 disk_percent_list.append(value_disk)
+                name_list.append(unique_name)
+                license_name_list.append(unique_license_name)
     # 反转磁盘百分比列表
     reversed_list = disk_percent_list[::-1]
-
+    reversed_name = name_list[::-1]
+    reversed_license_name = license_name_list[::-1]
     return data_lines, reversed_list
 
 
@@ -253,13 +238,12 @@ def draw_lines(request):
     :param request:
     :return:  HttpResponse: 渲染后的HTML响应。
     """
-    unique_license_names, unique_license_json, unique_names = get_unique_license()
+    unique_license_names, unique_names = get_unique_license()
     # 获取模型对象列表并陈列
     data_lines, reversed_list = get_draw_line(unique_license_names, unique_names)
     return render(request, "eye_on_server/web/ServerChart.html",
                   {"data_lines": data_lines,
-                   "disk_percent": reversed_list,
-                   "unique_license_json": unique_license_json})
+                   "disk_percent": reversed_list})
 
 
 @login_required
@@ -273,30 +257,59 @@ def search(request):
         search_list = []
         search_value = request.GET.get('keywords', "").strip()
         search_list.append(search_value)
-        _, unique_license_json, search_name = get_unique_license()
+        _, search_name = get_unique_license()
         result = SeverInfo.objects.filter(license_name=search_value).exists()
         if result:
             data_lines, reversed_list = get_draw_line(search_list, search_name)
             return render(request, "eye_on_server/web/search.html",
-                          {"data_lines": data_lines, "disk_percent": reversed_list,
-                           "unique_license_json": unique_license_json})
+                          {"data_lines": data_lines, "disk_percent": reversed_list})
 
 
 @login_required
 # @csrf_exempt
 def day_data(request):
-    if request == 'GET':
-        print(111)
+    """
+    展示今、昨当天数据表
+    :param request:
+    :return:
+    """
+    if request.method == 'GET':
         day = request.GET.get('date')
-        if day == 1:
+        value = request.GET.get('value')
+        data_index = request.GET.get('dataIndex')
+        print("dataIndex", data_index)
+
+        license_name = reversed_license_name[int(data_index)]
+
+        name = reversed_name[int(data_index)]
+        print('license_name: {},name: {}'.format(license_name, name))
+        print("day", day)
+        if value == 'all-day':
             draw_lines()
-        if day is None:
+        if value == 'yesterday':
             return JsonResponse({"message": "暂无昨日信息!"})
         else:
-            data_day = SeverInfo.objects.filter(time__date=day)
-
-            print("data_day", data_day)
-            return render(request, 'eye_on_server/web/ServerChart.html')
+            # data_lines = []
+            # disk_percent_list = []
+            disk_percent = 0
+            data_day = SeverInfo.objects.filter(time__date=day, license_name=license_name, name=name)
+            if data_day.values('disk_percent') is not None:
+                disk_percent = data_day.values('disk_percent').last()
+            # 提取时间、CPU使用率和内存百分比
+            x_time = [info.localized_time.strftime('%Y-%m-%d %H:%M:%S') for info in data_day]
+            y_cpu = [info.percent for info in data_day]
+            y_memory = [info.memory_percent for info in data_day]
+            # 创建图表对象
+            chart = Chart()
+            # 生成图表数据
+            data_line = chart.lines_chart(f'{license_name}_{name}',
+                                          f'CPU_Usage_{license_name}_{name}',
+                                          x_time, y_cpu, y_memory)
+            # 添加图标数据和磁盘百分比到相应列表
+            # data_lines.append(data_line)
+            # return render(request, "eye_on_server/web/ServerChart.html",
+            #               {"data_line": data_line, "disk_percent": disk_percent})
+            return JsonResponse({"data_line": data_line, "disk_percent": disk_percent})
 
     return HttpResponse("Invalid quest")
 

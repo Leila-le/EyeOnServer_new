@@ -85,14 +85,15 @@
 <div class="layui-bg-grey" >
   <div class="layui-row layui-col-space15" >
     {% for data_line in data_lines %}
+        {% block DayChart %}{% endblock %}
     <div class="layui-col-md4" style="padding: 40px;">
       <div class="layui-card">
         <div class="layui-card-header ">
             <a>磁盘当前使用率</a>
             <div class="layui-form " style="float: right;width: auto;position: relative;">
-                <input type="radio" value="all-day" name="data-show" title="全部" lay-filter="demo-radio-filter" checked>
-                <input type="radio" value="yesterday" name="data-show" title="昨天" lay-filter="demo-radio-filter" >
-                <input type="radio" value="today" name="data-show" title="今天" lay-filter="demo-radio-filter" >
+                <input type="radio" value="all-day" name="data-show" title="全部" lay-filter="demo-radio-filter" checked data-index="{{ forloop.counter0 }}">
+                <input type="radio" value="yesterday" name="data-show" title="昨天" lay-filter="demo-radio-filter" data-index="{{ forloop.counter0 }}">
+                <input type="radio" value="today" name="data-show" title="今天" lay-filter="demo-radio-filter" data-index="{{ forloop.counter0 }}">
             </div>
             <div class="layui-progress layui-progress-big" lay-showpercent="true" style="width: auto;position: relative; ">
                 <div class="layui-progress-bar" lay-percent="{{disk_percent.pop}}%" style="width: 100% ;position: absolute;"></div>
@@ -123,7 +124,7 @@
         }else{
             progressBar.classList.add('layui-bg-primary');
         }
-    });
+     });
 
     layui.use(['form', 'jquery'],function(){
       var form = layui.form;
@@ -135,9 +136,12 @@
         var checked = elem.checked; // 获得 radio 选中状态
         var value = elem.value; // 获得 radio 值
         var othis = data.othis; // 获得 radio 元素被替换后的 jQuery 对象
+        var dataIndex = elem.getAttribute('data-index');
+          console.log(dataIndex)
+        var dataLine = JSON.parse('{{ data_lines|escapejs }}');
         var now = new Date();
         var year = now.getFullYear();
-        var month = now.getMonth();
+        var month = now.getMonth()+1;
         if(month<10)
           month = "0" + month;
         var day = now.getDate();//当前日期
@@ -146,13 +150,13 @@
           day = "0" + day;
         if(value==="yesterday"){
           time=year+"-"+month+"-"+day-1;
-        }
+         }
         if (value === "today") {
           time = year + "-" + month + "-" + day;
-        }
+         }
         if (value === "all-day") {
-          time = 1;
-        }
+          time = "1";
+         }
           // 根据条件判断是否禁用单选按钮
         if (isNaN(time)) {
           $('input[value="yesterday"]').not(elem).prop('disabled', true);
@@ -161,20 +165,26 @@
           $('input[value="yesterday"]').prop('disabled', false);
           form.render('radio');
         }
-        layer.msg(['value: '+ value, 'checked: '+ checked].join('<br>'));
-        $.ajax({
-            url:'{% url 'day-data' %}',
-            type:'GET',
-            data:{'date':time},
-            success:function (data){
-                if(data.message)
-                    layer.msg(data.message)
-                window.location.href=this.url
-            },
-            error:function (xhr, status, error){
-                console.error("Error:", error);
-            }
-         })
+        {#layer.msg(['value: '+ value, 'checked: '+ checked].join('<br>'));#}
+        if(value==='yesterday' || value==='today')
+        {
+            $.ajax({
+                url:'{% url 'DayChart' %}',
+                type:'GET',
+                data:{'date':time, 'value':value, 'dataIndex':dataIndex},
+                success:function (data){
+                    if(data.message){
+                        layer.msg(data.message);
+                    }else {
+
+                        {#window.location.href=this.url;#}
+                    }
+                },
+                error:function (xhr, status, error){
+                    console.error("Error:", error);
+                }
+            })
+        }
       });
     })
 </script>
