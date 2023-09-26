@@ -1,5 +1,6 @@
 import datetime
 import logging
+import time
 
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -7,6 +8,7 @@ from django.contrib.auth.views import LoginView
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.shortcuts import render, redirect
+from django.utils import timezone
 
 from django.views.decorators.csrf import csrf_exempt
 from eye_on_server.tools.chart import Chart
@@ -14,7 +16,7 @@ import json
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse, HttpResponse
 from eye_on_server.models import SeverInfo, User
-from django.db.models import Max
+from django.db.models import Max, Q
 
 from eye_on_server.tools.send_dingtalk import process_message, schedule_send_alert_am9
 
@@ -24,8 +26,7 @@ bulletin = False
 
 current_day = 0
 
-reversed_name = []
-reversed_license_name = []
+
 @csrf_exempt
 def data_to_model(request):
     """
@@ -172,37 +173,33 @@ def sever_list(request):
     return render(request, 'eye_on_server/web/ServerList.html')
 
 
-def get_unique_license():
+def get_draw_line(**kwargs):
     """
-    获取唯一的许可证名称和服务器名称，并将其转换为JSON格式。
-    :return:tuple: 包含唯一许可证名称、转换为JSON格式的唯一许可证名称和唯一服务器名称的元组。
+    生成图表数据和磁盘百分比列表。
+
+    :return: tuple: 包含图表数据列表和反转后的磁盘百分比列表的元组。
     """
     # 从SeverInfo中获取唯一的许可名称
     unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
     # 从SeverInfo中获取唯一的服务器名称
-    unique_name = SeverInfo.objects.values_list('name', flat=True).distinct()
-
-    return unique_license, unique_name
-
-
-def get_draw_line(unique_license_names, unique_names):
-    """
-    生成图表数据和磁盘百分比列表。
-    :param unique_license_names:(list) 唯一的许可证名称列表。
-    :param unique_names:(list) 唯一的服务器名称列表。
-    :return: tuple: 包含图表数据列表和反转后的磁盘百分比列表的元组。
-    """
+    unique_names = SeverInfo.objects.values_list('name', flat=True).distinct()
     data_lines = []
     disk_percent_list = []
     name_list = []
     license_name_list = []
-    global reversed_name,reversed_license_name
     # 遍历唯一的许可证名称和服务器名称
-    for unique_license_name in unique_license_names:
+    for unique_license_name in unique_license:
         for unique_name in unique_names:
             # 查询服务器信息
-            server_info_list = SeverInfo.objects.filter(license_name=unique_license_name, name=unique_name).order_by(
-                'time')
+            if kwargs:
+                start_time = kwargs.get('start_time')
+                end_time = kwargs.get('end_time')
+                server_info_list = SeverInfo.objects.filter(license_name=unique_license_name,
+                                                            name=unique_name,
+                                                            time__range=(start_time, end_time)).order_by('time')
+            else:
+                server_info_list = SeverInfo.objects.filter(license_name=unique_license_name,
+                                                            name=unique_name).order_by('time')
             if server_info_list.exists():
                 # 获取最后一个服务器信息的磁盘百分比
                 disk_percent = server_info_list.values('disk_percent').last()
@@ -223,10 +220,9 @@ def get_draw_line(unique_license_names, unique_names):
                 disk_percent_list.append(value_disk)
                 name_list.append(unique_name)
                 license_name_list.append(unique_license_name)
+
     # 反转磁盘百分比列表
     reversed_list = disk_percent_list[::-1]
-    reversed_name = name_list[::-1]
-    reversed_license_name = license_name_list[::-1]
     return data_lines, reversed_list
 
 
@@ -238,9 +234,8 @@ def draw_lines(request):
     :param request:
     :return:  HttpResponse: 渲染后的HTML响应。
     """
-    unique_license_names, unique_names = get_unique_license()
     # 获取模型对象列表并陈列
-    data_lines, reversed_list = get_draw_line(unique_license_names, unique_names)
+    data_lines, reversed_list = get_draw_line()
     return render(request, "eye_on_server/web/ServerChart.html",
                   {"data_lines": data_lines,
                    "disk_percent": reversed_list})
@@ -257,60 +252,39 @@ def search(request):
         search_list = []
         search_value = request.GET.get('keywords', "").strip()
         search_list.append(search_value)
-        _, search_name = get_unique_license()
         result = SeverInfo.objects.filter(license_name=search_value).exists()
         if result:
-            data_lines, reversed_list = get_draw_line(search_list, search_name)
+            data_lines, reversed_list = get_draw_line()
             return render(request, "eye_on_server/web/search.html",
                           {"data_lines": data_lines, "disk_percent": reversed_list})
+        else:
+            return JsonResponse({"message": "未找到相关结果"})
 
 
 @login_required
 # @csrf_exempt
 def day_data(request):
     """
-    展示今、昨当天数据表
+    展示最近一小时或最近一天或最近一周的图标
     :param request:
     :return:
     """
     if request.method == 'GET':
-        day = request.GET.get('date')
         value = request.GET.get('value')
-        data_index = request.GET.get('dataIndex')
-        print("dataIndex", data_index)
-
-        license_name = reversed_license_name[int(data_index)]
-
-        name = reversed_name[int(data_index)]
-        print('license_name: {},name: {}'.format(license_name, name))
-        print("day", day)
-        if value == 'all-day':
-            draw_lines()
-        if value == 'yesterday':
-            return JsonResponse({"message": "暂无昨日信息!"})
+        current = timezone.now()
+        if value == "last_hour":
+            start_time = current - datetime.timedelta(hours=1)
+        if value == "last_day":
+            start_time = current - datetime.timedelta(days=1)
+        if value == "last_week":
+            start_time = current - datetime.timedelta(weeks=1)
+        get_time = {"start_time": start_time, "end_time": current}
+        data_lines, reversed_list = get_draw_line(**get_time)
+        if data_lines:
+            return render(request, "eye_on_server/web/DayChart.html",
+                          {"new_data_lines": data_lines, "new_disk_percent": reversed_list, "value":value})
         else:
-            # data_lines = []
-            # disk_percent_list = []
-            disk_percent = 0
-            data_day = SeverInfo.objects.filter(time__date=day, license_name=license_name, name=name)
-            if data_day.values('disk_percent') is not None:
-                disk_percent = data_day.values('disk_percent').last()
-            # 提取时间、CPU使用率和内存百分比
-            x_time = [info.localized_time.strftime('%Y-%m-%d %H:%M:%S') for info in data_day]
-            y_cpu = [info.percent for info in data_day]
-            y_memory = [info.memory_percent for info in data_day]
-            # 创建图表对象
-            chart = Chart()
-            # 生成图表数据
-            data_line = chart.lines_chart(f'{license_name}_{name}',
-                                          f'CPU_Usage_{license_name}_{name}',
-                                          x_time, y_cpu, y_memory)
-            # 添加图标数据和磁盘百分比到相应列表
-            # data_lines.append(data_line)
-            # return render(request, "eye_on_server/web/ServerChart.html",
-            #               {"data_line": data_line, "disk_percent": disk_percent})
-            return JsonResponse({"data_line": data_line, "disk_percent": disk_percent})
-
+            return JsonResponse({"message": "未找到相关结果"})
     return HttpResponse("Invalid quest")
 
 

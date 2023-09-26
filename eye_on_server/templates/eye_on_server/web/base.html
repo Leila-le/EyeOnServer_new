@@ -22,7 +22,9 @@
       <li>{% block search %}{% endblock %}</li>
       {% block breadcrumb %}{% endblock %}
     </ul>
-    <ul class="layui-nav layui-layout-right">
+
+    <ul class="layui-nav layui-layout-right" style="display: flex; align-items: center;">
+      {% block selecttime %}{% endblock %}
       <li class="layui-nav-item layui-hide layui-show-sm-inline-block">
         <div class="ws-header-tool ws-bg-light layui-form">
             <div class="layui-form-item">
@@ -64,6 +66,7 @@
 {#        <li class="layui-nav-item"><a href="javascript:">click menu item</a></li>#}
 {#        <li class="layui-nav-item"><a href="javascript:">the links</a></li>#}
       </ul>
+
     </div>
   </div>
 
@@ -72,7 +75,7 @@
       <div class="layui-card layui-panel" style=" padding:16px">
         {% block Server_list %}{% endblock %}
         {% block ServerChart %}{% endblock %}
-        {% block SearchChart %}{% endblock %}
+{#        {% block SearchChart %}{% endblock %}#}
         {% block System %}{% endblock %}
       </div>
       <br><br>

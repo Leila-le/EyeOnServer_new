@@ -5,10 +5,8 @@ import datetime
 
 from dingtalkchatbot.chatbot import DingtalkChatbot
 from django.db.models import Q
-from django.utils import timezone
 
 from eye_on_server.models import SeverInfo
-
 
 webhook = 'https://oapi.dingtalk.com/robot/send?access_token' \
           '=403401f4b0ee81a7ea4b3355b85327bb71cfb33ef2f9ff6ce1db6e82e182af56'
@@ -18,6 +16,8 @@ alerts_list = []  # 存储警告消息的列表
 last_sent_time = 0  # 上次发送警告消息的时间戳
 alerts_str = ""  # 警告消息的字符串形式
 timer = None  # 定时器对象,用于定时发送警告消息
+timer_ = None  # 定时器对象，用于每日定时发送简报消息
+alerts_9am = False
 
 
 def send_alert_to_dingtalk():
@@ -121,34 +121,33 @@ def get_message():
                 return base_info
 
 
-def send_alert_am9(message):
+def send_alert_am9():
     """
     获取当前时间,构建要发送的消息
     :param message: 服务器基础信息的消息内容
     :return: None
     """
-    # 获取当前时间
-    current_time = datetime.datetime.now().time()
-    print(current_time)
-    # 检查是否在9点以后
-    if current_time >= datetime.time(9, 0, 0):
-        # 构建要发送的消息
-        xiao_ding.send_markdown("服务器基础信息", message)
+    message = get_message()
+    xiao_ding.send_markdown("服务器基础信息", message)
 
 
 def schedule_send_alert_am9():
     """
-    设置明天9点执行发送消息的定时器
+    设置每天9点执行发送消息的定时器
     :return: None
     """
-    # 设置明天9点执行发送消息的定时器
-    next_run_time = datetime.datetime.combine(datetime.date.today() + datetime.timedelta(days=1),
-                                              datetime.time(9, 0, 0))
-    time_delta = next_run_time - datetime.datetime.now()
-    seconds_until_next_run = time_delta.total_seconds()
-    # 启动定时器，在明天的9点执行send_alert_am9函数
-    timer_ = threading.Timer(seconds_until_next_run, send_alert_am9, args=get_message())
-    timer_.start()
+    global timer_
+    if timer_ is not None and timer_.is_alive():
+        return
 
-    # 取消定时器，避免重复执行send_alert_am9函数
-    timer_.cancel()
+    now = datetime.datetime.now()  # 获取当前时间
+    # 设置今天的上午9点的目标触发时间
+    target_time = now.replace(hour=9, minute=0, second=0, microsecond=0)
+    # 如果已经过了今天9点则将触发时间定位明天9点
+    if now >= target_time:
+        target_time += datetime.timedelta(days=1)
+    # 计算时间间隔（以秒为单位）
+    delay = (target_time - now).total_seconds()
+    # 启动定时器，在明天的9点执行send_alert_am9函数
+    timer_ = threading.Timer(delay, send_alert_am9)
+    timer_.start()
