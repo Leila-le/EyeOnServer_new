@@ -1,5 +1,6 @@
 import datetime
 import logging
+import time
 
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 bulletin = False
 
 current_day = 0
+last_warning_time = 0
 
 
 @csrf_exempt
@@ -62,51 +64,22 @@ def data_to_model(request):
         logging.debug("alerts: %s", alerts)
         # 将alerts字典存入数据库的ServerInfo模型中
         SeverInfo.objects.create(**alerts)
-        get_warning(alerts)
-        schedule_send_alert_am9()
+        get_warningstar()
+        # get_warning(alerts)  # 发送实时消息
+        schedule_send_alert_am9()  # 每日定时简报
 
         return HttpResponse("ok")
 
 
-def get_warning(alerts):
-    # infos = SeverInfo.objects.all()
-    # for alerts in infos:
-    received_time = datetime.datetime.now()
-    formatted_datetime = received_time.strftime("%Y-%m-%d %H:%M:%S")
-    # 设置阈值，用于比较
-    cpu_threshold = 80
-    memory_threshold = 80
-    disk_threshold = 80
-    # 初始化消息列表和标志变量
-    messages = []
-    flag = False
-    # 检查CPU使用率是否超过阈值
-    if alerts['percent'] > cpu_threshold:
-        message = f"系统: {alerts['name']}\n许可:{alerts['license_name']}\n时间:{formatted_datetime}\n" \
-                  f"CPU使用率: {alerts['percent']}%"
-        messages.append(message)
-        flag = True
-    # 检查内存使用率是否超过阈值
-    if alerts['memory_percent'] > memory_threshold:
-        if flag:
-            message = f"内存使用率: {alerts['memory_percent']}%"
-
-        else:
-            message = f"系统: {alerts['name']}\n许可:{alerts['license_name']}\n时间:{formatted_datetime}\n" \
-                      f"内存使用率: {alerts['memory_percent']}%"
-        messages.append(message)
-        flag = True
-    # 检查磁盘使用率是否超过阈值
-    if alerts['disk_percent'] > disk_threshold:
-        if flag:
-            message = f"\n磁盘使用率: {alerts['disk_percent']}%"
-        else:
-            message = f"系统: {alerts['name']}\n许可:{alerts['license_name']}\n时间:{formatted_datetime}\n" \
-                      f"磁盘使用率: {alerts['disk_percent']}%"
-        messages.append(message)
-    # 将当前收集到的超过阈值的内容传至send_alert_to_dingtalk进行发送钉钉消息准备
-    if messages:
-        process_message("".join(messages))
+def get_warningstar():
+    global last_warning_time
+    current_time = time.time()  # 获取当前时间戳
+    if current_time - last_warning_time >= 30:
+        last_warning_time = current_time
+        # 执行获取警告消息的逻辑
+        process_message()  # 发送实时消息
+    else:
+        return
 
 
 @login_required
@@ -184,6 +157,7 @@ def get_draw_line(unique_license, unique_names, **kwargs):
             if kwargs:
                 start_time = kwargs.get('start_time')
                 end_time = kwargs.get('end_time')
+                print("start_time,end_time", start_time, end_time)
                 server_info_list = SeverInfo.objects.filter(license_name=unique_license_name,
                                                             name=unique_name,
                                                             time__range=(start_time, end_time)).order_by('time')
@@ -224,6 +198,8 @@ def draw_lines(request):
     :param request:
     :return:  HttpResponse: 渲染后的HTML响应。
     """
+    if 'str_value' in request.session:
+        del request.session['str_value']
     # 从SeverInfo中获取唯一的许可名称
     unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
     # 从SeverInfo中获取唯一的服务器名称
@@ -244,6 +220,7 @@ def search(request):
     """
     if request.method == 'GET':
         search_value = request.GET.get('keywords')
+        request.session['str_value'] = search_value
         result = SeverInfo.objects.filter(license_name=search_value).exists()
         if result:
             # 从SeverInfo中获取唯一的服务器名称
@@ -272,12 +249,8 @@ def day_data(request):
             start_time = current - datetime.timedelta(days=1)
         if value == "last_week":
             start_time = current - datetime.timedelta(weeks=1)
-        str_value = request.GET.get("search_value")
-        if str_value:
-            request.session['str_value'] = str_value  # 将str_value存储在会话中
-        else:
-            str_value = request.session.get('str_value', '')  # 从会话中获取str_value的值
-        if str_value:  # 如果是在搜索界面提出的申请
+        if 'str_value' in request.session:  # 如果是在搜索界面提出的申请
+            str_value = request.session['str_value']
             unique_license = str_value.split()  # 将字符串转列表
             level = str_value
         else:
