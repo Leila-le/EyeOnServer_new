@@ -3,8 +3,8 @@
 {% block breadcrumb %}
   <span class="layui-breadcrumb" lay-separator=">">
       <a href="{% url 'ServerChart' %}">首页</a>
-      <a href="{% url 'ServerChart' %}">资源折线图</a>
-      <a href="{% url 'search' %}">搜索结果</a>
+      <a href="{% url 'ServerChart' %}">资源图</a>
+      <a href="{% url 'search' %}">{{ search_value }}</a>
   </span>
 {% endblock %}
 {% block ServerChart %}
@@ -14,7 +14,7 @@
     <div class="layui-col-md4">
       <div class="layui-card" id="searchResults">
           <div class="layui-card-header ">
-            <a  >磁盘当前使用率</a>
+            <a>磁盘当前使用率</a>
             <div class="layui-progress layui-progress-big" lay-showpercent="true" style="width: auto;position: relative; ">
                 <div class="layui-progress-bar" lay-percent="{{disk_percent.pop}}%" style="width: 100% ;position: absolute;"></div>
             </div>

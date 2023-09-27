@@ -4,7 +4,6 @@ import time
 import datetime
 
 from dingtalkchatbot.chatbot import DingtalkChatbot
-from django.db.models import Q
 
 from eye_on_server.models import SeverInfo
 
@@ -91,32 +90,19 @@ def get_message():
             loadavg_five = []
             loadavg_fif = []
             # 查询服务器信息
-            server_info_list = SeverInfo.objects.filter(license_name=unique_license_name, name=unique_name).order_by(
-                'time')
-            current_time = datetime.datetime.now()
-            five_minutes_ago = current_time - datetime.timedelta(minutes=5)
-            five_minutes_ago = five_minutes_ago.replace(second=0, microsecond=0)
-            fifteen_minutes_ago = current_time - datetime.timedelta(minutes=15)
-            fifteen_minutes_ago = fifteen_minutes_ago.replace(second=0, microsecond=0)
-            # 执行查询，获取在5分钟前的那一分钟中创建的数据库信息
-            results_five = server_info_list.filter(Q(time__gte=five_minutes_ago))
-            results_fifteen = server_info_list.filter(Q(time__gte=fifteen_minutes_ago))
+            server_info_list = SeverInfo.objects.filter(license_name=unique_license_name,
+                                                        name=unique_name).order_by('time')
             # 遍历results_five并获取每个对象的loadavg属性
-            for result in results_five:
-                loadavg_five = result.loadavg
-            for result in results_fifteen:
-                loadavg_fif = result.loadavg
             for info in server_info_list:
                 base_info = f"""> 您的云服务器已运行-{info.uptime}，
-                        <br>机器负载情况为(最近1、5、15分钟)：{info.loadavg, loadavg_five[0], loadavg_fif[0]},
                         <br>- 目前CPU使用率为：{info.percent}%，
                         <br>- 系统运行内存使用率为：{info.memory_percent}%，
                         <br>- 剩余可用运行内存为：{float(info.free_physics) / (1024 * 1024 * 1024)}GiB，
                         <br>- 系统存储内存使用率为：{info.disk_percent}%，
                         <br>- 剩余可用存储内存为：{float(info.free) / (1024 * 1024 * 1024)}GiB,
                         <br>**{'机器CPU使用率正常' if float(info.percent) <= 80 else '机器CPU使用率过高，可能触发预警'}**
-                        <br>**{'机器内存使用率正常' if float(info.memory_percent) <= 80 else '机器CPU使用率过高，可能触发预警'}**
-                        <br>**{'机器磁盘使用率正常' if float(info.disk_percent) <= 80 else '机器CPU使用率过高，可能触发预警'}**
+                        <br>**{'机器内存使用率正常' if float(info.memory_percent) <= 80 else '机器内存使用率过高，可能触发预警'}**
+                        <br>**{'机器磁盘使用率正常' if float(info.disk_percent) <= 80 else '机器磁盘使用率过高，可能触发预警'}**
                         """
                 return base_info
 

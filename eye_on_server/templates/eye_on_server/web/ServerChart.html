@@ -3,7 +3,7 @@
 {% block breadcrumb %}
   <span class="layui-breadcrumb" lay-separator=">">
   <a href="{% url 'ServerChart' %}">首页</a>
-  <a href="{% url 'ServerChart' %}">资源折线图</a>
+  <a href="{% url 'ServerChart' %}">资源图</a>
 </span>
 {% endblock %}
 {% block search %}
@@ -52,7 +52,7 @@
             $.ajax({
                 url: '{% url 'search' %}',
                 type: 'GET',
-                data: {keywords: searchValue},
+                data: {"keywords": searchValue},
                 success: function (response) {
                     if(response.message){
                         layer.msg(response.message);
@@ -75,6 +75,7 @@
           <input type="radio" name="select-time" value="last_hour" title="最近一小时" lay-filter="demo-radio-filter" >
           <input type="radio" name="select-time" value="last_day" title="最近一天" lay-filter="demo-radio-filter" >
           <input type="radio" name="select-time" value="last_week" title="最近一周" lay-filter="demo-radio-filter" >
+          <input type="hidden" id="search-value" data-search-value="{{ search_value }}" lay-filter="demo-radio-filter">
       </div>
     </div>
   </li>
@@ -87,15 +88,15 @@
       // radio 事件
       form.on('radio(demo-radio-filter)', function(data){
         var elem = data.elem; // 获得 radio 原始 DOM 对象
-        var checked = elem.checked; // 获得 radio 选中状态
         var value = elem.value; // 获得 radio 值
-        var othis = data.othis; // 获得 radio 元素被替换后的 jQuery 对象
-        {#layer.msg(['value: '+ value, 'checked: '+ checked].join('<br>'));#}
-        console.log(value);
+
+        var searchValueElement = document.getElementById('search-value');
+        var searchValue = searchValueElement.dataset.searchValue;
+
         $.ajax({
             url:'{% url 'DayChart' %}',
             type:'GET',
-            data:{'value':value},
+            data:{'value':value, 'search_value': searchValue},
             success:function (data){
                 if(data.message){
                     layer.msg(data.message)

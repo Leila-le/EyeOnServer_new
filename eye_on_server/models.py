@@ -24,7 +24,6 @@ class SeverInfo(models.Model):
     total_idle = models.CharField(max_length=30, blank=True, null=True)
     user = models.CharField(max_length=30, blank=True, null=True)
     count = models.CharField(max_length=5, blank=True, null=True)
-    loadavg = models.CharField(max_length=5, blank=True, null=True)
     # 获取内存使用情况
     free_physics = models.CharField(max_length=30, blank=True, null=True)
     free_swap = models.CharField(max_length=30, blank=True, null=True)
@@ -43,8 +42,6 @@ class SeverInfo(models.Model):
     total = models.CharField(max_length=30, blank=True, null=True)
     used = models.CharField(max_length=30, blank=True, null=True)
     disk_percent = models.CharField(max_length=30, blank=True, null=True)
-
-    alter_query = models.BooleanField(default=False)
 
     @property
     def localized_time(self):
