@@ -27,13 +27,13 @@
       {% block selecttime %}{% endblock %}
       <li class="layui-nav-item layui-hide layui-show-sm-inline-block">
         <div class="ws-header-tool ws-bg-light layui-form">
-            <div class="layui-form-item">
-              <input type="checkbox" name="switch" lay-skin="switch" lay-filter="switch" value="2">
-              <div lay-checkbox>
-                <i class="layui-icon layui-icon-moon" id="dark"></i> |
-                <i class="layui-icon layui-icon-light" id="light"></i>
-              </div>
+          <div class="layui-form-item">
+            <input type="checkbox" name="switch" lay-skin="switch" lay-filter="switch" value="2">
+            <div lay-checkbox>
+              <i class="layui-icon layui-icon-moon" id="dark"></i> |
+              <i class="layui-icon layui-icon-light" id="light"></i>
             </div>
+          </div>
        </div>
       </li>
       <li class="layui-nav-item layui-hide layui-show-sm-inline-block">
@@ -109,22 +109,22 @@
         });
     });
     layui.use(['form','jquery'], function() {
-      var form = layui.form;
-      var $ = layui.$;
+      let form = layui.form;
+      let $ = layui.$;
       // 渲染开关按钮
       form.render('checkbox');
       // 检查本地存储中是否存在主题选择
-      var savedTheme = localStorage.getItem('theme');
+      let savedTheme = localStorage.getItem('theme');
       if (savedTheme) {
         // 根据本地存储中的主题选择来设置主题样式
-        var cssUrl = savedTheme === 'dark' ? "{% static 'eye_on_server/css/layui-theme-dark.css' %}" : '';
+        let cssUrl = savedTheme === 'dark' ? "{% static 'eye_on_server/css/layui-theme-dark.css' %}" : '';
         $('#theme-css').attr('href', cssUrl);
       }
       // 监听开关状态变化
       form.on('switch(switch)', function(data){
-        var theme = data.elem.checked ? 'dark' : 'light';
+        let theme = data.elem.checked ? 'dark' : 'light';
         if (theme === 'dark')
-            var cssUrl ="{% static 'eye_on_server/css/layui-theme-dark.css' %}";
+            let cssUrl ="{% static 'eye_on_server/css/layui-theme-dark.css' %}";
         else
             cssUrl = '';
         // 切换主题

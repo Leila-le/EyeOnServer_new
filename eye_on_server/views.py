@@ -17,7 +17,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse, HttpResponse
 from eye_on_server.models import SeverInfo, User
 from django.db.models import Max
-
+from django.core.cache import cache
 from eye_on_server.tools.send_dingtalk import process_message, schedule_send_alert_am9
 
 logger = logging.getLogger(__name__)
@@ -57,21 +57,29 @@ def data_to_model(request):
         # 处理内存数据
         for key, value in data['memory'].items():
             alerts[key] = value
-        memory_percent = round(alerts['used_physics'] / alerts['total_physics'] * 100, 2)
-        swap_percent = round(alerts['used_swap'] / alerts['total_swap'] * 100, 2)
+
+        if alerts['total_physics'] != 0:
+            memory_percent = round(alerts['used_physics'] / alerts['total_physics'] * 100, 2)
+        else:
+            memory_percent = 0
+
+        if alerts['total_swap'] != 0:
+            swap_percent = round(alerts['used_swap'] / alerts['total_swap'] * 100, 2)
+        else:
+            swap_percent = 0
         alerts.update({'memory_percent': memory_percent})
         alerts.update({'swap_percent': swap_percent})
         logging.debug("alerts: %s", alerts)
         # 将alerts字典存入数据库的ServerInfo模型中
         SeverInfo.objects.create(**alerts)
-        get_warningstar()
+        get_warning_star()
         # get_warning(alerts)  # 发送实时消息
         schedule_send_alert_am9()  # 每日定时简报
 
         return HttpResponse("ok")
 
 
-def get_warningstar():
+def get_warning_star():
     global last_warning_time
     current_time = time.time()  # 获取当前时间戳
     if current_time - last_warning_time >= 30:
@@ -157,10 +165,14 @@ def get_draw_line(unique_license, unique_names, **kwargs):
             if kwargs:
                 start_time = kwargs.get('start_time')
                 end_time = kwargs.get('end_time')
-                print("start_time,end_time", start_time, end_time)
-                server_info_list = SeverInfo.objects.filter(license_name=unique_license_name,
-                                                            name=unique_name,
-                                                            time__range=(start_time, end_time)).order_by('time')
+                select_value = kwargs.get('select_time')
+                if select_value == 'last_hour':
+                    server_info_list = cache.get('data_key')
+                    print("server_info_list", server_info_list)
+                else:
+                    server_info_list = SeverInfo.objects.filter(license_name=unique_license_name,
+                                                                name=unique_name,
+                                                                time__range=(start_time, end_time)).order_by('time')
             else:
                 server_info_list = SeverInfo.objects.filter(license_name=unique_license_name,
                                                             name=unique_name).order_by('time')
@@ -198,6 +210,8 @@ def draw_lines(request):
     :param request:
     :return:  HttpResponse: 渲染后的HTML响应。
     """
+    # 删除七天以前的数据库记录
+    delete_old_records()
     if 'str_value' in request.session:
         del request.session['str_value']
     # 从SeverInfo中获取唯一的许可名称
@@ -245,10 +259,12 @@ def day_data(request):
         current = timezone.now()
         if value == "last_hour":
             start_time = current - datetime.timedelta(hours=1)
-        if value == "last_day":
+        elif value == "last_day":
             start_time = current - datetime.timedelta(days=1)
-        if value == "last_week":
+        elif value == "last_week":
             start_time = current - datetime.timedelta(weeks=1)
+        else:
+            return JsonResponse({"message": "Invalid value"})
         if 'str_value' in request.session:  # 如果是在搜索界面提出的申请
             str_value = request.session['str_value']
             unique_license = str_value.split()  # 将字符串转列表
@@ -259,7 +275,7 @@ def day_data(request):
             level = '资源图'
         # 从SeverInfo中获取唯一的服务器名称
         unique_names = SeverInfo.objects.values_list('name', flat=True).distinct()
-        get_time = {"start_time": start_time, "end_time": current}
+        get_time = {"start_time": start_time, "end_time": current, "select_time": value}
         data_lines, reversed_list = get_draw_line(unique_license, unique_names, **get_time)
         if data_lines:
             return render(request, "eye_on_server/web/DayChart.html",
@@ -279,6 +295,7 @@ def home(request):
     :param request: HTTP请求对象
     :return:HttpResponse: 包含主页内容的HTML响应
     """
+
     return render(request, "eye_on_server/web/base.html")
 
 
@@ -328,3 +345,12 @@ def handle_user_registration(sender, instance, created, **kwargs):
         password = instance.password  # 获取注册页面输入的密码
         instance.set_password(password)  # 设置密码
         instance.save()  # 保存用户对象
+
+
+def delete_old_records():
+    # 计算七天前的时间日期
+    cutoff_date = timezone.now()-datetime.timedelta(weeks=1)
+    records_to_delete = SeverInfo.objects.filter(time__lt=cutoff_date)
+
+    # 执行删除
+    records_to_delete.delete()

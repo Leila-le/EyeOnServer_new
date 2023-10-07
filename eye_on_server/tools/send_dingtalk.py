@@ -80,7 +80,6 @@ def send_alert_to_dingtalk():
     # 尝试发送警告消息给钉钉
     i = 1
     while i < len(alerts_list):
-
         system_license_previous = alerts_list[i - 1].split("\n")[:2]
         system_license_new = alerts_list[i].split("\n")[:2]
 

@@ -81,13 +81,13 @@
     <script src="{% static 'eye_on_server/js/layui.js' %}"></script>
     <script>
     layui.use(['form', 'jquery'],function(){
-      var form = layui.form;
-      var layer = layui.layer;
-      var $ = layui.$;
+      let form = layui.form;
+      let layer = layui.layer;
+      let $ = layui.$;
       // radio 事件
       form.on('radio(demo-radio-filter)', function(data){
-        var elem = data.elem; // 获得 radio 原始 DOM 对象
-        var value = elem.value; // 获得 radio 值
+        let elem = data.elem; // 获得 radio 原始 DOM 对象
+        let value = elem.value; // 获得 radio 值
         $.ajax({
             url:'{% url 'DayChart' %}',
             type:'GET',

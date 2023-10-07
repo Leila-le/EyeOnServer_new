@@ -55,5 +55,5 @@ class User(AbstractUser):
 
     @property
     def localized_time(self):
-        return self.create_at.astimezone(timezone.get_current_timezone()), self.update_at.astimezone(
-            timezone.get_current_timezone())
+        return self.create_at.astimezone(timezone.get_current_timezone()), \
+            self.update_at.astimezone(timezone.get_current_timezone())
