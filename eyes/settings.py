@@ -74,10 +74,19 @@ WSGI_APPLICATION = 'eyes.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": 'eyes_database',
+        "USER": 'postgres',
+        "PASSWORD": 'postgres',
+        'PORT': '',
     }
 }
 
@@ -137,7 +146,7 @@ AUTH_USER_MODEL = 'eye_on_server.User'
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://localhost:6379/0',
+        'LOCATION': 'redis://192.168.199.42:6379/0',
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }

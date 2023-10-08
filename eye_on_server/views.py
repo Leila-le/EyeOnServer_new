@@ -72,20 +72,49 @@ def data_to_model(request):
         logging.debug("alerts: %s", alerts)
         # 将alerts字典存入数据库的ServerInfo模型中
         SeverInfo.objects.create(**alerts)
-        get_warning_star()
+        get_warning_star(alerts)
         # get_warning(alerts)  # 发送实时消息
         schedule_send_alert_am9()  # 每日定时简报
 
         return HttpResponse("ok")
 
 
-def get_warning_star():
-    global last_warning_time
-    current_time = time.time()  # 获取当前时间戳
-    if current_time - last_warning_time >= 30:
-        last_warning_time = current_time
+def get_warning_star(alerts):
+    # 设置阈值，用于比较
+    cpu_threshold = 80
+    memory_threshold = 80
+    disk_threshold = 80
+    keys = []
+    if alerts['percent'] > cpu_threshold:
+        key = alerts['name'] + '-' + alerts['license_name'] + '-' + 'CPU'
+        keys.append(key)
+        cpu_percent_max = alerts['percent']
+        cached_value = cache.get(key)
+        if cached_value is not None and cached_value < cpu_percent_max:
+            cache.add(key, cpu_percent_max, 30)
+        else:
+            cache.add(key, cpu_percent_max, 30)
+    if alerts['memory_percent'] > memory_threshold:
+        key = alerts['name'] + '-' + alerts['license_name'] + '-' + '内存'
+        keys.append(key)
+        memory_percent_max = alerts['memory_percent']
+        cached_value = cache.get(key)
+        if cached_value is not None and cached_value < memory_percent_max:
+            cache.add(key, memory_percent_max, 30)
+        else:
+            cache.add(key, memory_percent_max, 30)
+    if alerts['disk_percent'] > disk_threshold:
+        key = alerts['name'] + '-' + alerts['license_name'] + '-' + '磁盘'
+        keys.append(key)
+        disk_percent_max = alerts['disk_percent']
+        cached_value = cache.get(key)
+        if cached_value is not None and cached_value < disk_percent_max:
+            cache.add(key, disk_percent_max, 30)
+        else:
+            cache.add(key, disk_percent_max, 30)
+    if keys is not None:
         # 执行获取警告消息的逻辑
-        process_message()  # 发送实时消息
+        process_message(keys)  # 发送实时消息
     else:
         return
 
@@ -349,7 +378,7 @@ def handle_user_registration(sender, instance, created, **kwargs):
 
 def delete_old_records():
     # 计算七天前的时间日期
-    cutoff_date = timezone.now()-datetime.timedelta(weeks=1)
+    cutoff_date = timezone.now() - datetime.timedelta(weeks=1)
     records_to_delete = SeverInfo.objects.filter(time__lt=cutoff_date)
 
     # 执行删除
