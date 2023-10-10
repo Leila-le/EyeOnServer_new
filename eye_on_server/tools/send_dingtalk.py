@@ -1,7 +1,6 @@
 import logging
 import threading
 import time
-import datetime
 from dingtalkchatbot.chatbot import DingtalkChatbot
 from django.core.cache import cache
 from eye_on_server.models import SeverInfo
@@ -25,6 +24,7 @@ def get_warning(keys):
         target = key.split('-')[2]
         message = f"系统: {name}\n许可:{license_name}\n" \
                   f"{target}最高超阈值使用率: {cache.get(key)}%\n"
+        print("message", message)
         messages.append(message)
     # 将当前收集到的超过阈值的内容传至send_alert_to_dingtalk进行发送钉钉消息准备
     if messages:
@@ -84,11 +84,12 @@ def process_message(keys):
     if timer is not None and timer.is_alive():
         return
     message = get_warning(keys)
+
     alerts_list.append(message)  # 将消息添加至列表
 
     current_time = time.time()  # 获取当前时间戳
     # 检查时间间隔是否超过30秒
-    if current_time - last_sent_time >= 30 or len(alerts_list) >= 10:
+    if current_time - last_sent_time >= 30:
         if timer is not None and timer.is_alive():
             timer.cancel()  # 如果定时器正在运行,则取消重置定时器
             send_alert_to_dingtalk()  # 手动调用发送函数
@@ -130,34 +131,3 @@ def get_message():
                         <br>**{'机器磁盘使用率正常' if float(info.disk_percent) <= 80 else '机器磁盘使用率过高，可能触发预警'}**
                         """
                 return base_info
-
-
-def send_alert_am9():
-    """
-    获取当前时间,构建要发送的消息
-    :return: None
-    """
-    message = get_message()
-    xiao_ding.send_markdown("服务器基础信息", message)
-
-
-def schedule_send_alert_am9():
-    """
-    设置每天9点执行发送消息的定时器
-    :return: None
-    """
-    global timer_
-    if timer_ is not None and timer_.is_alive():
-        return
-
-    now = datetime.datetime.now()  # 获取当前时间
-    # 设置今天的上午9点的目标触发时间
-    target_time = now.replace(hour=9, minute=0, second=0, microsecond=0)
-    # 如果已经过了今天9点则将触发时间定位明天9点
-    if now >= target_time:
-        target_time += datetime.timedelta(days=1)
-    # 计算时间间隔（以秒为单位）
-    delay = (target_time - now).total_seconds()
-    # 启动定时器，在明天的9点执行send_alert_am9函数
-    timer_ = threading.Timer(delay, send_alert_am9)
-    timer_.start()

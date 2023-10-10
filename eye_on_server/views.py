@@ -5,6 +5,7 @@ import time
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
+from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.shortcuts import render, redirect
@@ -18,7 +19,8 @@ from django.http import JsonResponse, HttpResponse
 from eye_on_server.models import SeverInfo, User
 from django.db.models import Max
 from django.core.cache import cache
-from eye_on_server.tools.send_dingtalk import process_message, schedule_send_alert_am9
+from eye_on_server.tools.send_dingtalk import process_message
+from eye_on_server.tools.task import process_data_and_save
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +31,7 @@ last_warning_time = 0
 
 
 @csrf_exempt
+@transaction.atomic
 def data_to_model(request):
     """
     将接收到的数据存入数据库，并检查是否超过阈值，发送钉钉消息。
@@ -36,47 +39,53 @@ def data_to_model(request):
     :return: HttpResponse: HTTP响应对象。
     """
     if request.method == 'POST':
-        data = json.loads(request.body)
-        # 提取数据中的服务器名称和许可证名称
-        name = data['name']
-        license_ = data['license_name']
-        # 创建包含服务器名称和许可证名称的alerts字典
-        alerts = {'name': name, 'license_name': license_}
-        # 处理cpu数据
-        for key, value in data['cpu'].items():
-            alerts[key] = value
-        alerts['percent'] = round(alerts['percent'] * 100, 2)
-        logging.debug("alerts: %s", alerts)
-        # 处理磁盘数据
-        for key, value in data['disk'].items():
-            alerts[key] = value
-            logging.info("alerts: %s", alerts)
-        disk_percent = round(alerts['used'] / alerts['total'] * 100, 2)
-        alerts.update({'disk_percent': disk_percent})
-        logging.debug("alerts: %s", alerts)
-        # 处理内存数据
-        for key, value in data['memory'].items():
-            alerts[key] = value
+        try:
+            data = json.loads(request.body)
+            # 提取数据中的服务器名称和许可证名称
+            name = data['name']
+            license_ = data['license_name']
+            if not name or not license_:
+                return HttpResponse("Invalid data", status=400)
 
-        if alerts['total_physics'] != 0:
-            memory_percent = round(alerts['used_physics'] / alerts['total_physics'] * 100, 2)
-        else:
-            memory_percent = 0
+            # 创建包含服务器名称和许可证名称的alerts字典
+            alerts = {'name': name, 'license_name': license_}
+            # 处理cpu数据
+            for key, value in data['cpu'].items():
+                alerts[key] = value
+            alerts['percent'] = round(alerts['percent'] * 100, 2)
+            logging.debug("alerts: %s", alerts)
+            # 处理磁盘数据
+            for key, value in data['disk'].items():
+                alerts[key] = value
+                logging.info("alerts: %s", alerts)
+            disk_percent = round(alerts['used'] / alerts['total'] * 100, 2)
+            alerts.update({'disk_percent': disk_percent})
+            logging.debug("alerts: %s", alerts)
+            # 处理内存数据
+            for key, value in data['memory'].items():
+                alerts[key] = value
+            if alerts['total_physics'] != 0:
+                memory_percent = round(alerts['used_physics'] / alerts['total_physics'] * 100, 2)
+            else:
+                memory_percent = 0
 
-        if alerts['total_swap'] != 0:
-            swap_percent = round(alerts['used_swap'] / alerts['total_swap'] * 100, 2)
-        else:
-            swap_percent = 0
-        alerts.update({'memory_percent': memory_percent})
-        alerts.update({'swap_percent': swap_percent})
-        logging.debug("alerts: %s", alerts)
-        # 将alerts字典存入数据库的ServerInfo模型中
-        SeverInfo.objects.create(**alerts)
-        get_warning_star(alerts)
-        # get_warning(alerts)  # 发送实时消息
-        schedule_send_alert_am9()  # 每日定时简报
+            if alerts['total_swap'] != 0:
+                swap_percent = round(alerts['used_swap'] / alerts['total_swap'] * 100, 2)
+            else:
+                swap_percent = 0
+            alerts.update({'memory_percent': memory_percent})
+            alerts.update({'swap_percent': swap_percent})
+            logging.debug("alerts: %s", alerts)
+            # 将alerts字典存入数据库的ServerInfo模型中
+            # SeverInfo.objects.create(**alerts)
+            process_data_and_save.delay(alerts)  # 异步存入数据库
+            get_warning_star(alerts)
 
-        return HttpResponse("ok")
+            return HttpResponse("ok")
+        except json.JSONDecodeError:
+            return HttpResponse("Invalid JSON data", status=400)
+    else:
+        return HttpResponse("Method not allowed", status=405)
 
 
 def get_warning_star(alerts):

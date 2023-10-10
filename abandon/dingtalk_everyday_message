@@ -1,0 +1,33 @@
+            schedule_send_alert_am9()  # 每日定时简报
+
+
+
+def send_alert_am9():
+    """
+    获取当前时间,构建要发送的消息
+    :return: None
+    """
+    message = get_message()
+    xiao_ding.send_markdown("服务器基础信息", message)
+
+
+def schedule_send_alert_am9():
+    """
+    设置每天9点执行发送消息的定时器
+    :return: None
+    """
+    global timer_
+    if timer_ is not None and timer_.is_alive():
+        return
+
+    now = datetime.datetime.now()  # 获取当前时间
+    # 设置今天的上午9点的目标触发时间
+    target_time = now.replace(hour=9, minute=0, second=0, microsecond=0)
+    # 如果已经过了今天9点则将触发时间定位明天9点
+    if now >= target_time:
+        target_time += datetime.timedelta(days=1)
+    # 计算时间间隔（以秒为单位）
+    delay = (target_time - now).total_seconds()
+    # 启动定时器，在明天的9点执行send_alert_am9函数
+    timer_ = threading.Timer(delay, send_alert_am9)
+    timer_.start()

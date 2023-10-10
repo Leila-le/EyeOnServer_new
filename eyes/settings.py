@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
+from decouple import config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,7 +24,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-tr+(k=n(ta*d)&dln6ywy=nkjk#+rn@vr552jvut07#+g!w$ps'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+DEBUG = config("DEBUG", default=0)
 
 ALLOWED_HOSTS = ['*', ]
 
@@ -35,7 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'eye_on_server'
+    'eye_on_server',
+    'django_redis',
+    'django_celery_beat',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -71,22 +77,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'eyes.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": 'eyes_database',
-        "USER": 'postgres',
-        "PASSWORD": 'postgres',
-        'PORT': '',
+        'ENGINE': "django.db.backends.postgresql",
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'ATOMIC_REQUESTS': True,
     }
 }
 
@@ -135,14 +134,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'eye_on_server.User'
 
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django.core.cache.backends.db.DatabaseCache",
-#         "LOCATION": "my_cache_table",
-#     }
-# }
-# # 使用redis作为缓存
-# if os.environ.get("DJANGO_REDIS_URL"):
+# 使用redis作为缓存
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -152,6 +144,21 @@ CACHES = {
         }
     },
 }
+
+# Celery Broker 配置(使用Redis作为消息代理)
+CELERY_BROKER_URL = config('CELERY_BROKER_REDIS_URL', default='redis://192.168.199.42:6379')
+# Celery Backend 配置（使用 Redis 作为结果存储）
+CELERY_RESULT_BACKEND = 'redis://192.168.199.42:6379/0'
+
+# Celery 配置
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 任务超时时间（以秒为单位）
+
+# Celery Worker Concurrency 配置
+CELERY_WORKER_CONCURRENCY = 4  # 并发工作进程的数量
+
+# this allows you to schedule items in the Django admin.
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 
 LOGGING = {
     'version': 1,
