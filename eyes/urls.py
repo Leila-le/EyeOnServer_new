@@ -17,12 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import path
+from django.views.decorators.cache import cache_page
+
 from eye_on_server import views
 from eye_on_server.views import MyLoginView
 
 urlpatterns = [
     path('myadmin/', admin.site.urls),  # 管理员页面
-    path('data/', views.data_to_model, name='data'),  # 将数据存入数据库中,并将超过阈值的内容传至钉钉
+    path('shortman/', views.data_to_model, name='data'),  # 将数据存入数据库中,并将超过阈值的内容传至钉钉
 
     path('web/', views.draw_lines, name='ServerChart'),  # 用于展示cpu\内存使用折线图以及磁盘当前使用率
     path('table_data', views.data_to_json, name='table_data'),  # 用于实现ServerList中的数据转为json便于展示

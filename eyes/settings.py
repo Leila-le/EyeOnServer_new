@@ -122,7 +122,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = '/static/'
-# STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [BASE_DIR / 'eye_on_server/static']
 
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -152,7 +152,7 @@ CELERY_RESULT_BACKEND = 'redis://192.168.199.42:6379/0'
 
 # Celery 配置
 CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60  # 任务超时时间（以秒为单位）
+CELERY_TASK_TIME_LIMIT = 5  # 任务超时时间（以秒为单位）
 
 # Celery Worker Concurrency 配置
 CELERY_WORKER_CONCURRENCY = 4  # 并发工作进程的数量

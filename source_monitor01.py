@@ -29,7 +29,7 @@ while True:
     # 处理新文件
     with open('media/json/shortman01.json', 'r') as f:
         data = eval(f.read())
-    url = 'http://192.168.199.42:8000/data/'
+    url = 'http://192.168.199.42:8000/shortman/'
     # url = 'http://110.43.54.174:8001/shortman/'
     requests.post(url, json=data)
     print('type-data', type(data))

@@ -22,13 +22,11 @@ def get_warning(keys):
         name = key.split('-')[0]
         license_name = key.split('-')[1]
         target = key.split('-')[2]
-        message = f"系统: {name}\n许可:{license_name}\n" \
-                  f"{target}最高超阈值使用率: {cache.get(key)}%\n"
-        print("message", message)
+        message = f"系统: {name}\n许可:{license_name}\n{target}最高超阈值使用率: {cache.get(key)}%"
         messages.append(message)
     # 将当前收集到的超过阈值的内容传至send_alert_to_dingtalk进行发送钉钉消息准备
     if messages:
-        return "\n".join(messages)
+        return "\n\n".join(messages)
 
 
 def send_alert_to_dingtalk():
@@ -84,12 +82,12 @@ def process_message(keys):
     if timer is not None and timer.is_alive():
         return
     message = get_warning(keys)
-
-    alerts_list.append(message)  # 将消息添加至列表
+    if message is not None:
+        alerts_list.append(message)  # 将消息添加至列表
 
     current_time = time.time()  # 获取当前时间戳
     # 检查时间间隔是否超过30秒
-    if current_time - last_sent_time >= 30:
+    if current_time - last_sent_time >= 30 or len(alerts_list) >= 10:
         if timer is not None and timer.is_alive():
             timer.cancel()  # 如果定时器正在运行,则取消重置定时器
             send_alert_to_dingtalk()  # 手动调用发送函数
@@ -101,33 +99,3 @@ def process_message(keys):
     # 启动新的定时器，30 秒后执行处理函数(不受执行时间影响）
     timer = threading.Timer(30 - (time.time() - last_sent_time), send_alert_to_dingtalk)
     timer.start()
-
-
-def get_message():
-    """
-    获取服务器基础信息的消息内容
-    :return:服务器基础信息的消息内容
-    """
-    # 从SeverInfo中获取唯一的许可名称
-    unique_license_names = SeverInfo.objects.values_list('license_name', flat=True).distinct()
-    # 从SeverInfo中获取唯一的服务器名称
-    unique_names = SeverInfo.objects.values_list('name', flat=True).distinct()
-    # 遍历唯一的许可证名称和服务器名称
-    for unique_license_name in unique_license_names:
-        for unique_name in unique_names:
-            # 查询服务器信息
-            server_info_list = SeverInfo.objects.filter(license_name=unique_license_name,
-                                                        name=unique_name).order_by('time')
-            # 遍历results_five并获取每个对象的loadavg属性
-            for info in server_info_list:
-                base_info = f"""> 您的云服务器已运行-{info.uptime}，
-                        <br>- 目前CPU使用率为：{info.percent}%，
-                        <br>- 系统运行内存使用率为：{info.memory_percent}%，
-                        <br>- 剩余可用运行内存为：{float(info.free_physics) / (1024 * 1024 * 1024)}GiB，
-                        <br>- 系统存储内存使用率为：{info.disk_percent}%，
-                        <br>- 剩余可用存储内存为：{float(info.free) / (1024 * 1024 * 1024)}GiB,
-                        <br>**{'机器CPU使用率正常' if float(info.percent) <= 80 else '机器CPU使用率过高，可能触发预警'}**
-                        <br>**{'机器内存使用率正常' if float(info.memory_percent) <= 80 else '机器内存使用率过高，可能触发预警'}**
-                        <br>**{'机器磁盘使用率正常' if float(info.disk_percent) <= 80 else '机器磁盘使用率过高，可能触发预警'}**
-                        """
-                return base_info
