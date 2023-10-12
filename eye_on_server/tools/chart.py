@@ -54,7 +54,6 @@ class Chart(object):
                 label_opts=opts.LabelOpts(is_show=False),
                 is_smooth=True
             )
-            # .render("Basic_line_chart.html")
         )
         line_.chart_id = chart_id
         return line_.render_embed()  # 返回框架,便于植入home.html中

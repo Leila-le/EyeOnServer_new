@@ -61,7 +61,7 @@
                 url:'{% url "system" %}',
                 type:'GET',
                 data:{license_name:data.license_name},
-                success:function (data){
+                success:function (){
                     window.location.href=this.url
                 },
                 error:function (xhr, status, error){

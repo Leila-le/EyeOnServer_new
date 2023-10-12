@@ -8,7 +8,8 @@ from django.utils import timezone
 class SeverInfo(models.Model):
     name = models.CharField(max_length=30, blank=True, null=True)
     license_name = models.CharField(max_length=30, blank=True, null=True)
-    time = models.DateTimeField(auto_now_add=True)
+    # time = models.DateTimeField(auto_now_add=True)
+    time = models.DateTimeField()
     # 获取CPU使用情况
     guest = models.CharField(max_length=30, blank=True, null=True)
     guest_nice = models.CharField(max_length=30, blank=True, null=True)
@@ -43,9 +44,9 @@ class SeverInfo(models.Model):
     used = models.CharField(max_length=30, blank=True, null=True)
     disk_percent = models.CharField(max_length=30, blank=True, null=True)
 
-    @property
-    def localized_time(self):
-        return self.time.astimezone(timezone.get_current_timezone())
+    # @property
+    # def localized_time(self):
+    #     return self.time.astimezone(timezone.get_current_timezone())
 
 
 class User(AbstractUser):

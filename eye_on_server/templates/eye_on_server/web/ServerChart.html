@@ -1,14 +1,16 @@
 {% extends 'eye_on_server/web/base.html' %}
 {% load static %}
 {% block breadcrumb %}
-  <span class="layui-breadcrumb" lay-separator=">">
-  <a href="{% url 'ServerChart' %}">首页</a>
-  <a href="{% url 'ServerChart' %}">资源图</a>
-</span>
+    <li>
+      <span class="layui-breadcrumb" lay-separator=">">
+          <a href="{% url 'ServerChart' %}">首页</a>
+          <a href="{% url 'ServerChart' %}">资源图</a>
+      </span>
+    </li>
 {% endblock %}
 {% block search %}
     <li class="layui-nav-item layui-show-xs-inline-block " lay-header-event="menuLeft"></li>
-      <li class="layui-nav-item layui-hide-xs" style="display: inline-block;padding-right: 10px">
+    <li class="layui-nav-item layui-hide-xs" style="display: inline-block;padding-right: 10px">
          <div class="layui-input-group">
             <label>
                 <input type="text" placeholder="搜索......" class="layui-input" lay-options="{split:true}" id="searchInput">
@@ -17,9 +19,8 @@
                 <i class="layui-icon layui-icon-search search" style="font-size: 15px;" lay-affix="search" id="searchIcon" lay-event="search"></i>
             </div>
          </div>
-      </li>
+    </li>
     <script src="{% static "/eye_on_server/js/layui.js" %}"></script>
-    <script src="{% static 'eye_on_server/js/echarts/echarts.min.js' %}"></script>
     <script>
     //JS
     layui.use(['element', 'layer', 'util', 'form','jquery'], function() {
@@ -111,7 +112,7 @@
 <div class="layui-bg-grey" >
   <div class="layui-row layui-col-space15" >
     {% for data_line in data_lines %}
-    <div class="layui-col-md4" style="padding: 40px;">
+    <div class="layui-col-md6" style="padding: 40px;height: auto">
       <div class="layui-card">
         <div class="layui-card-header ">
             <a>磁盘当前使用率</a>
@@ -122,8 +123,9 @@
           <br>
         <div class="layui-card-body" >
             <div class="layui-row " >
-                <div class="layui-container" id="layui-col-md4" style="width: 400px;height: 400px" >
-                    {{ data_line |safe }}<br>
+                {{ data_line |safe }}<br>
+{#                <div class="layui-container" style="width: 400px;height: 400px" >#}
+{#                    {{ data_line |safe }}<br>#}
                 </div>
             </div>
         </div>
@@ -132,6 +134,7 @@
     {% endfor %}
   </div>
 </div>
+<script src="{% static 'eye_on_server/js/echarts/echarts.min.js' %}"></script>
 <script src="{% static 'eye_on_server/js/layui.js' %}"></script>
 <script>
     let progressBarList = document.querySelectorAll('.layui-progress-bar');
