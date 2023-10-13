@@ -1,15 +1,5 @@
 {% extends "eye_on_server/web/ServerChart.html" %}
-{% load static %}
-{% block breadcrumb %}
-  <span class="layui-breadcrumb" lay-separator=">">
-  <a href="{% url 'ServerChart' %}">首页</a>
-  <a >{{ level }}</a>
-  <a >{{ value }}</a>
-</span>
-{% endblock %}
-
 {% block data_of_disk%}
    <div class="layui-progress-bar" lay-percent="{{disk_percent.pop}}%" style="width: 100% ;position: absolute;"></div>
 {% endblock %}
-
 {% block data_of_line %}{{ data_line |safe }}{% endblock %}

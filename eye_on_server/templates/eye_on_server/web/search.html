@@ -7,45 +7,8 @@
       <a href="{% url 'search' %}">{{ search_value }}</a>
   </span>
 {% endblock %}
-{% block ServerChart %}
-<div class="layui-bg-grey" style="padding: 16px;">
-  <div class="layui-row layui-col-space15" >
-    {% for data_line in data_lines %}
-    <div class="layui-col-md4">
-      <div class="layui-card" id="searchResults">
-          <div class="layui-card-header ">
-            <a>磁盘当前使用率</a>
-            <div class="layui-progress layui-progress-big" lay-showpercent="true" style="width: auto;position: relative; ">
-                <div class="layui-progress-bar" lay-percent="{{disk_percent.pop}}%" style="width: 100% ;position: absolute;"></div>
-            </div>
-        </div>
-          <br>
-        <div class="layui-card-body" >
-            <div class="layui-row " >
-                <div class="layui-container" id="layui-col-md4" style="width: 400px;height: 400px" >
-                    {{ data_line |safe }}
-                </div>
-            </div>
-        </div>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-</div>
-<script src="{% static 'eye_on_server/js/layui.js' %}"></script>
-    <script src="{% static 'eye_on_server/js/echarts/echarts.min.js' %}"></script>
-<script>
-    let progressBarList = document.querySelectorAll('.layui-progress-bar');
-    progressBarList.forEach(function (progressBar){
-        let diskPercent = parseInt(progressBar.getAttribute('lay-percent'), 10);
-        if (diskPercent > 80){
-            progressBar.classList.add('layui-bg-red');
-        }else if(diskPercent>60){
-            progressBar.classList.add('layui-bg-orange');
-        }else{
-            progressBar.classList.add('layui-bg-primary');
-        }
-    });
-
-</script>
+{% block data_of_disk%}
+   <div class="layui-progress-bar" lay-percent="{{disk_percent.pop}}%" style="width: 100% ;position: absolute;"></div>
 {% endblock %}
+
+{% block data_of_line %}{{ data_line |safe }}{% endblock %}

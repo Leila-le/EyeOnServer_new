@@ -16,7 +16,6 @@ import json
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import JsonResponse, HttpResponse
 from eye_on_server.models import SeverInfo, User
-from django.db.models import Max
 from django.core.cache import cache
 from eye_on_server.tools.send_dingtalk import process_message
 from eye_on_server.tools.task import process_data_and_save
@@ -80,7 +79,6 @@ def data_to_model(request):
             # SeverInfo.objects.create(**alerts)
             process_data_and_save.delay(alerts)  # 异步存入数据库
             get_warning_star(alerts)
-            get_cache_DB(alerts)
             return HttpResponse("ok")
         except json.JSONDecodeError:
             return HttpResponse("Invalid JSON data", status=400)
@@ -88,25 +86,13 @@ def data_to_model(request):
         return HttpResponse("Method not allowed", status=405)
 
 
-def get_cache_DB(alerts):
-    data_key = str(alerts['name']) + str(alerts['license_name'])
-    cache.add(data_key, alerts, 20)  # 缓存
+def get_cache_DB():
     # 检查redis缓存中是否存在名为'unique_name'和'unique_license_names'的缓存
-    unique_names = cache.get("unique_names")
-    unique_license_names = cache.get("unique_license_names")
-    # 没有则将相关列表转为元组进行缓存
-    if unique_names is None:
-        unique_names = []
-    if unique_license_names is None:
-        unique_license_names = []
-    # 将新的name和license_name追加到相应的列表中
-    unique_names.append(alerts['name'])
-    unique_license_names.append(alerts['license_name'])
-    # 去除重复项
-    unique_names = list(set(unique_names))
-    unique_license_names = list(set(unique_license_names))
-    cache.add('unique_names', unique_names, 60)
-    cache.add('unique_license_names', unique_license_names, 60)
+    unique_names = SeverInfo.objects.values_list('name', flat=True).distinct().order_by("-time")
+    unique_license_names = SeverInfo.objects.filter(name__in=unique_names).values_list('license_name',
+                                                                                       flat=True).distinct()
+    cache.add('unique_names', unique_names, 60 * 2)
+    cache.add('unique_license_names', unique_license_names, 60 * 2)
 
 
 def get_warning_star(alerts):
@@ -157,22 +143,18 @@ def data_to_json(request):
     :return: JsonResponse: 包含服务器信息的JSON响应对象
     """
     data = []
-    # 先从缓存中获取唯一的许可名称
+    # 先从缓存中获取唯一的系统和许可名称
     unique_license = cache.get("unique_license_names")
-    flag = 1
-    unique_name = cache.get("unique_names")
-    print("unique_name", unique_name)
+
     # 缓存中没有则从SeverInfo中获取唯一的许可名称
     if unique_license is None:
-        flag = 0
-        unique_licenses = SeverInfo.objects.values_list('license_name', flat=True).distinct()
-        unique_license = unique_licenses.order_by('license_name')
+        get_cache_DB()
+        unique_license = cache.get("unique_license_names")
     # 获取请求中的页码和每页限制数
     page = request.GET.get('page', 1)
     limit = request.GET.get('limit', 10)
     # 使用分页器进行分页
     paginator = Paginator(unique_license, limit)
-
     try:
         page_data = paginator.page(page)  # 获取指定页码的数据
     except PageNotAnInteger:
@@ -181,40 +163,20 @@ def data_to_json(request):
         page_data = paginator.page(paginator.num_pages)  # 如果页码超过范围,则返回最后一页数据
 
     count = 0  # 计算数据总数
+
     for unique_license in page_data:
-        if flag:
-            for name in unique_name:
-                key = name + unique_license
-                latest_record = cache.get(key)
-                print("cache_latest_record", latest_record)
-                if latest_record:
-                    overview_data = {
-                        'name': latest_record['name'],
-                        'license_name': latest_record['license_name'],
-                        'memory': latest_record['memory_percent'],
-                        'cpu': latest_record['percent'],
-                        'disk': latest_record['disk_percent'],
-                        'joinTime': latest_record['time'].strftime('%Y-%m-%d %H:%M:%S')
-                    }
-                    data.append(overview_data)
-                    count += 1
-        else:
-            server_info_list = SeverInfo.objects.filter(license_name=unique_license).values('name').annotate(
-                max_time=Max('time'))
-            for server_info in server_info_list:
-                latest_record = SeverInfo.objects.filter(license_name=unique_license, name=server_info['name'],
-                                                         time=server_info['max_time']).first()
-                if latest_record:
-                    overview_data = {
-                        'name': latest_record.name,
-                        'license_name': latest_record.license_name,
-                        'memory': latest_record.memory_percent,
-                        'cpu': latest_record.percent,
-                        'disk': latest_record.disk_percent,
-                        'joinTime': latest_record.time.strftime('%Y-%m-%d %H:%M:%S')
-                    }
-                    data.append(overview_data)
-                    count += 1
+        latest_record = SeverInfo.objects.filter(license_name=unique_license).order_by("-time").first()
+        if latest_record:
+            overview_data = {
+                'name': latest_record.name,
+                'license_name': latest_record.license_name,
+                'memory': latest_record.memory_percent,
+                'cpu': latest_record.percent,
+                'disk': latest_record.disk_percent,
+                'joinTime': latest_record.time.strftime('%Y-%m-%d %H:%M:%S')
+            }
+            data.append(overview_data)
+            count += 1
 
     merged_data = {
         'code': 0,
@@ -242,42 +204,42 @@ def get_draw_line(unique_license_names, **kwargs):
     """
     data_lines = []
     disk_percent_list = []
-    # 遍历唯一的许可证名称和服务器名称
+
+    # 创建图表对象
+    chart = Chart()
     for unique_license_name in unique_license_names:
-        print('unique_license_name',unique_license_name)
-        # 查询服务器信息
+        server_info_queryset = SeverInfo.objects.filter(license_name=unique_license_name).values("name",
+                                                                                                     "time", "percent",
+                                                                                                     "memory_percent",
+                                                                                                     "disk_percent").order_by(
+            'time')
         if kwargs:
             start_time = kwargs.get('start_time')
             end_time = kwargs.get('end_time')
-            server_info_list = SeverInfo.objects.filter(license_name=unique_license_name,
-                                                        time__range=(start_time, end_time)).order_by('time')
-        else:
-            server_info_list = SeverInfo.objects.filter(license_name=unique_license_name).order_by('time')
-        if server_info_list.exists():
-            # 提取时间、CPU使用率和内存百分比
-            x_time = [info.time.strftime('%Y-%m-%d %H:%M:%S') for info in server_info_list]
-            y_cpu = [info.percent for info in server_info_list]
-            y_memory = [info.memory_percent for info in server_info_list]
-            unique_name = server_info_list.values("name").first()
-            # print("x_time{},y_cpu{},y_memory{}".format(x_time,y_cpu,y_memory))
-            # 创建图表对象
-            chart = Chart()
-            # 生成图表数据
-            try:
-                data_line = chart.lines_chart(f'{unique_license_name}_{unique_name}',
-                                              f'CPU_Usage_{unique_license_name}_{unique_name}',
-                                              x_time, y_cpu, y_memory)
-                # 添加图标数据和磁盘百分比到相应列表
-                data_lines.append(data_line)
-                # print("dataline{}".format(data_line))
-            except Exception as e:
-                print(e)
-
-            # 获取最后一个服务器信息的磁盘百分比
-            disk_percent = server_info_list.values('disk_percent').last()
-            # 获取磁盘百分比
-            value_disk = disk_percent.get("disk_percent") if disk_percent else None
-            disk_percent_list.append(value_disk)
+            server_info_queryset = server_info_queryset.filter(time__range=(start_time, end_time))
+        # 获取服务器信息数据
+        x_time = []
+        y_cpu = []
+        y_memory = []
+        name = None
+        value_disk = None
+        # 遍历唯一的许可证名称和服务器名称
+        for server_info in server_info_queryset:
+            # 查询服务器信息
+            x_time.append(server_info["time"].strftime('%Y-%m-%d %H:%M:%S'))
+            y_cpu.append(server_info["percent"])
+            y_memory.append(server_info["memory_percent"])
+            value_disk = server_info["disk_percent"]  # 获取磁盘百分比
+            name = server_info["name"]
+        if name is None:
+            continue
+        # 生成图表数据
+        data_line = chart.lines_chart(f'{unique_license_name}_{name}',
+                                      f'CPU_Usage_{unique_license_name}_{name}',
+                                      x_time, y_cpu, y_memory)
+        # 添加图标数据和磁盘百分比到相应列表
+        data_lines.append(data_line)
+        disk_percent_list.append(value_disk)
 
     # 反转磁盘百分比列表
     reversed_list = disk_percent_list[::-1]
@@ -294,17 +256,19 @@ def draw_lines(request):
     """
     # 删除七天以前的数据库记录
     delete_old_records()
+    queryset = SeverInfo.objects.filter(license_name='example')
+
+    print('queryset.explain()',queryset.explain())
     if 'str_value' in request.session:
         del request.session['str_value']
     # 从SeverInfo中获取唯一的许可名称
     unique_license_names = cache.get("unique_license_names")
-    print("draw_lines:unique_license_names", unique_license_names)
     if unique_license_names is None:
-        unique_license_names = SeverInfo.objects.values_list('license_name', flat=True).distinct()
-        print("draw_lines:unique_license_names_server", unique_license_names)
+        get_cache_DB()
+        unique_license_names = cache.get("unique_license_names")
         # 获取模型对象列表并陈列
     data_lines, reversed_list = get_draw_line(unique_license_names)
-    return render(request, "eye_on_server/web/ServerChart.html",
+    return render(request, "eye_on_server/web/chartData.html",
                   {"data_lines": data_lines,
                    "disk_percent": reversed_list})
 
@@ -338,6 +302,11 @@ def day_data(request):
     :return:
     """
     if request.method == 'GET':
+        values = {
+            'last_hour': "最近一小时",
+            'last_day': "最近一天",
+            'last_week': "最近一周"
+        }
         value = request.GET.get('value')
         current = timezone.now()
         if value == "last_hour":
@@ -357,15 +326,16 @@ def day_data(request):
             unique_license = cache.get("unique_license_names")
             # 缓存中没有则从SeverInfo中获取唯一的许可名称
             if unique_license is None:
-                unique_license = SeverInfo.objects.values_list('license_name', flat=True).distinct()
+                get_cache_DB()
+                unique_license = cache.get("unique_license_names")
             level = '资源图'
         get_time = {"start_time": start_time, "end_time": current, "select_time": value}
         data_lines, reversed_list = get_draw_line(unique_license, **get_time)
         if data_lines:
             return render(request, "eye_on_server/web/DayChart.html",
-                          {"new_data_lines": data_lines,
-                           "new_disk_percent": reversed_list,
-                           "value": value,
+                          {"data_lines": data_lines,
+                           "disk_percent": reversed_list,
+                           "value": values[value],
                            "level": level})
         else:
             return JsonResponse({"message": "未找到相关结果"})

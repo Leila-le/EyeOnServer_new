@@ -7,7 +7,7 @@ from django.utils import timezone
 # Create your models here.
 class SeverInfo(models.Model):
     name = models.CharField(max_length=30, blank=True, null=True)
-    license_name = models.CharField(max_length=30, blank=True, null=True)
+    license_name = models.CharField(max_length=30, blank=True, null=True, db_index=True)
     # time = models.DateTimeField(auto_now_add=True)
     time = models.DateTimeField()
     # 获取CPU使用情况

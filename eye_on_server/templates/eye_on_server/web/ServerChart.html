@@ -1,12 +1,10 @@
 {% extends 'eye_on_server/web/base.html' %}
 {% load static %}
 {% block breadcrumb %}
-    <li>
-      <span class="layui-breadcrumb" lay-separator=">">
-          <a href="{% url 'ServerChart' %}">首页</a>
-          <a href="{% url 'ServerChart' %}">资源图</a>
-      </span>
-    </li>
+  <span class="layui-breadcrumb" lay-separator=">">
+    <a href="{% url 'ServerChart' %}">首页</a>
+    <a href="{% url 'ServerChart' %}">资源图</a>
+  </span>
 {% endblock %}
 {% block search %}
     <li class="layui-nav-item layui-show-xs-inline-block " lay-header-event="menuLeft"></li>
@@ -109,29 +107,26 @@
     </script>
 {% endblock %}
 {% block ServerChart %}
-<div class="layui-bg-grey" >
-  <div class="layui-row layui-col-space15" >
-    {% for data_line in data_lines %}
-    <div class="layui-col-md6" style="padding: 40px;height: auto">
-      <div class="layui-card">
-        <div class="layui-card-header ">
-            <a>磁盘当前使用率</a>
-            <div class="layui-progress layui-progress-big" lay-showpercent="true" style="width: auto;position: relative; ">
-                <div class="layui-progress-bar" lay-percent="{{disk_percent.pop}}%" style="width: 100% ;position: absolute;"></div>
+<div class="layui-bg-grey " style="padding: 16px;">
+  <div class="layui-card layui-col-space8" style="padding: 10px">
+    <div class="layui-row layui-col-space15">
+      {% for data_line in data_lines %}
+        <div class="layui-col-md6">
+          <div class="layui-card">
+            <div class="layui-card-header">
+              <a>磁盘当前使用率</a>
+              <div class="layui-progress layui-progress-big" lay-showpercent="true" style="width: 100%;position: relative; ">
+                {% block data_of_disk%}{% endblock %}
+              </div>
             </div>
-        </div>
-          <br>
-        <div class="layui-card-body" >
-            <div class="layui-row " >
-                {{ data_line |safe }}<br>
-{#                <div class="layui-container" style="width: 400px;height: 400px" >#}
-{#                    {{ data_line |safe }}<br>#}
-                </div>
+            <div class="layui-card-body" >
+            <br>
+              {% block data_of_line %}{% endblock %}
             </div>
+          </div>
         </div>
-      </div>
+      {% endfor %}
     </div>
-    {% endfor %}
   </div>
 </div>
 <script src="{% static 'eye_on_server/js/echarts/echarts.min.js' %}"></script>

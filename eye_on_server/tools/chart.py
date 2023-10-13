@@ -20,7 +20,7 @@ class Chart(object):
         :return: 包含折线图的HTML代码
         """
         line_ = (
-            Line(opts.InitOpts(width='100%', height='100%'))
+            Line(opts.InitOpts(width='100%', height="500px"))
             .set_global_opts(
                 title_opts=opts.TitleOpts(title=title, pos_left='center', pos_top='20px'),
                 tooltip_opts=opts.TooltipOpts(is_show=True, trigger='axis'),
